@@ -29,7 +29,7 @@
 #define EXPORT __declspec(dllexport)
 
 #include "types.h"
-#include "structs.h"
+#include "def.h"
 #ifdef __cplusplus
 extern "C"
 {
@@ -38,7 +38,8 @@ extern "C"
 enum
 {
     INVALID_THEADR_PROVIDED,
-    EXPECTING_THEADR
+    EXPECTING_THEADR,
+    INVALID_LHEADR_PROVIDED
 };
 
 void error(MAGIC_OMF_ERROR_CODE error_code, struct MagicOMFHandle* handle);

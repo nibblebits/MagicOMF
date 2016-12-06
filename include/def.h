@@ -26,10 +26,17 @@
 #define STRUCTS_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
-    
+
 #include "types.h"
+
+enum
+{
+    THEADR_ID = 0x80,
+    LHEADR_ID = 0x82
+};
 
 struct MagicOMFHandle
 {

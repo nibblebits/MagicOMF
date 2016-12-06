@@ -46,6 +46,12 @@ struct THEADR
     char* name_string;
 };
 
+struct LHEADR
+{
+    uint8 string_length;
+    char* name_string;
+};
+
 #ifdef __cplusplus
 }
 #endif

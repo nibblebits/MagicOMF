@@ -12,8 +12,8 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf)
     handle->last = NULL;
     handle->has_error = false;
     handle->last_error_code = -1;
-    // OMF Files always expect a LHEADR to begin with.
-    TranslatorReadLHEADR(handle);
+    // OMF Files always expect a THEADR to begin with.
+    TranslatorReadTHEADR(handle);
     if (handle->has_error)
     {
         // The LHEADR has an error and we are expecting an LHEADR so change the error code

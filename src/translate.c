@@ -56,16 +56,36 @@ void EndRecord(struct RECORD* record, struct MagicOMFHandle* handle)
 }
 
 
-void TranslatorReadLHEADR(struct MagicOMFHandle* handle)
+void TranslatorReadTHEADR(struct MagicOMFHandle* handle)
 {
     struct RECORD* record = StartRecord(handle);
-    if (record->type != 0x80)
+    if (record->type != THEADR_ID)
     {
         error(INVALID_THEADR_PROVIDED, handle);
         return;
     }
     
     struct THEADR* contents = malloc(sizeof(struct THEADR));
+    record->contents = contents;
+    contents->string_length = ReadUnsignedByte(&handle->next);
+    contents->name_string = ReadStringAddTerminator(&handle->next, contents->string_length);
+    EndRecord(record, handle);
+    
+    // THEADR records will always be the root
+    handle->root = record;
+    handle->last = record;
+}
+
+void TranslatorReadLHEADR(struct MagicOMFHandle* handle)
+{
+    struct RECORD* record = StartRecord(handle);
+    if (record->type != LHEADR_ID)
+    {
+        error(INVALID_LHEADR_PROVIDED, handle);
+        return;
+    }
+    
+    struct LHEADR* contents = malloc(sizeof(struct LHEADR));
     record->contents = contents;
     contents->string_length = ReadUnsignedByte(&handle->next);
     contents->name_string = ReadStringAddTerminator(&handle->next, contents->string_length);

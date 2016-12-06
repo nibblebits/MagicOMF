@@ -12,7 +12,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "structs.h"
+#include "def.h"
 #include "types.h"
 #include "record.h"
     
