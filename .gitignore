@@ -1,4 +1,5 @@
 nbproject
 *.o
+*.o.d
 *.dll
 *.so
