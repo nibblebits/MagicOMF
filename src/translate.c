@@ -20,7 +20,6 @@
 #include "IO.h"
 #include <stdlib.h>
 
-
 /* 
  * File:   translate.c
  * Author: Daniel McCarthy
@@ -31,30 +30,33 @@
 
 struct RECORD* StartRecord(struct MagicOMFHandle* handle)
 {
-    struct RECORD* record = (struct RECORD*) malloc(sizeof(struct RECORD));
+    struct RECORD* record = (struct RECORD*) malloc(sizeof (struct RECORD));
     // Read the standard record details
     record->type = ReadUnsignedByte(&handle->next);
     record->length = ReadUnsignedWord(&handle->next);
-    
+
     // Set the child pointer to NULL
     record->next = NULL;
-    
+
     return record;
 }
 
 void EndRecord(struct RECORD* record, struct MagicOMFHandle* handle)
 {
     record->checksum = ReadUnsignedByte(&handle->next);
-    
-    // Set the child of our parent to us if any, this is required for iterations.
-    if(handle->last != NULL)
+
+    // No root set so lets set it
+    if (handle->root == NULL)
     {
+        handle->root = record;
+    }
+    else
+    {
+        // Ok we already have a root so we know we have a last, lets append the last record's next pointer to point to us.
         handle->last->next = record;
     }
-    
     handle->last = record;
 }
-
 
 void TranslatorReadTHEADR(struct MagicOMFHandle* handle)
 {
@@ -64,16 +66,13 @@ void TranslatorReadTHEADR(struct MagicOMFHandle* handle)
         error(INVALID_THEADR_PROVIDED, handle);
         return;
     }
-    
-    struct THEADR* contents = malloc(sizeof(struct THEADR));
+
+    struct THEADR* contents = malloc(sizeof (struct THEADR));
     record->contents = contents;
     contents->string_length = ReadUnsignedByte(&handle->next);
     contents->name_string = ReadStringAddTerminator(&handle->next, contents->string_length);
     EndRecord(record, handle);
-    
-    // THEADR records will always be the root
-    handle->root = record;
-    handle->last = record;
+
 }
 
 void TranslatorReadLHEADR(struct MagicOMFHandle* handle)
@@ -84,14 +83,33 @@ void TranslatorReadLHEADR(struct MagicOMFHandle* handle)
         error(INVALID_LHEADR_PROVIDED, handle);
         return;
     }
-    
-    struct LHEADR* contents = malloc(sizeof(struct LHEADR));
+
+    struct LHEADR* contents = malloc(sizeof (struct LHEADR));
     record->contents = contents;
     contents->string_length = ReadUnsignedByte(&handle->next);
     contents->name_string = ReadStringAddTerminator(&handle->next, contents->string_length);
     EndRecord(record, handle);
-    
-    // LHEADR records will always be the root
-    handle->root = record;
-    handle->last = record;
+}
+
+void TranslatorReadCOMENT(struct MagicOMFHandle* handle)
+{
+    struct RECORD* record = StartRecord(handle);
+    if (record->type != COMENT_ID)
+    {
+        error(INVALID_COMENT_PROVIDED, handle);
+        return;
+    }
+
+    struct COMENT* contents = malloc(sizeof (struct COMENT));
+    record->contents = contents;
+    contents->c_type = ReadUnsignedByte(&handle->next);
+    contents->c_class = ReadUnsignedByte(&handle->next);
+
+    uint16 string_size = record->length - 3;
+
+    contents->c_string = ReadStringAddTerminator(&handle->next, string_size);
+    contents->no_purge = (contents->c_type & 0x80) == 0x80;
+    contents->no_list = (contents->c_type & 0x40) == 0x40;
+    EndRecord(record, handle);
+
 }

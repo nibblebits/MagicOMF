@@ -4,8 +4,9 @@
 #include "IO.h"
 #include "error.h"
 
-struct MagicOMFHandle* MagicOMFTranslate(char* buf)
+struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size)
 {
+    char* end = buf + size;
     struct MagicOMFHandle* handle = (struct MagicOMFHandle*) malloc(sizeof (struct MagicOMFHandle));
     handle->buf = buf;
     handle->next = buf;
@@ -28,6 +29,28 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf)
     else
     {
         error(EXPECTING_THEADR_OR_LHEADR, handle);
+    }
+
+
+    while (handle->next < end
+            && !handle->has_error)
+    {
+        type = ReadUnsignedByteNoNext(handle->next);
+        switch (type)
+        {
+        case THEADR_ID:
+            TranslatorReadTHEADR(handle);
+            break;
+        case LHEADR_ID:
+            TranslatorReadLHEADR(handle);
+            break;
+        case COMENT_ID:
+             TranslatorReadCOMENT(handle);
+            break;
+        default:
+            error(INVALID_RECORD_TYPE, handle);
+            break;
+        }
     }
 
     return handle;

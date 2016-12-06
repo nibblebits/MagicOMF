@@ -35,7 +35,8 @@ extern "C"
 enum
 {
     THEADR_ID = 0x80,
-    LHEADR_ID = 0x82
+    LHEADR_ID = 0x82,
+    COMENT_ID = 0x88
 };
 
 struct MagicOMFHandle

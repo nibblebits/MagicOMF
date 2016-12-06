@@ -16,7 +16,7 @@ extern "C" {
 #include "types.h"
 #include "record.h"
     
-struct MagicOMFHandle* MagicOMFTranslate(char* buf);
+struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size);
 const char* MagicOMFErrorMessage(MAGIC_OMF_ERROR_CODE error_id);
 #ifdef __cplusplus
 }

@@ -52,6 +52,19 @@ struct LHEADR
     char* name_string;
 };
 
+struct COMENT
+{
+    uint8 c_type;
+    uint8 c_class;
+    char* c_string;
+    /* The no_purge signifies that this comment is to be preserved by utility programs that manipulate object
+modules.  This can protect an important comment, such as a copyright message, from deletion*/
+    bool no_purge;
+/* The no_list signifies that a comment should not be shown to the utility programs that
+ list the object file contents*/
+    bool no_list;
+};
+
 #ifdef __cplusplus
 }
 #endif
