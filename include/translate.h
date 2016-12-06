@@ -37,6 +37,7 @@ void EndRecord(struct RECORD* record, struct MagicOMFHandle* handle);
 void TranslatorReadTHEADR(struct MagicOMFHandle* handle);
 void TranslatorReadLHEADR(struct MagicOMFHandle* handle);
 void TranslatorReadCOMENT(struct MagicOMFHandle* handle);
+void TranslatorReadLNAMES(struct MagicOMFHandle* handle);
 
 #ifdef __cplusplus
 }

@@ -33,7 +33,8 @@ const char* error_messages[] =
     "Expecting a THEADR or an LHEADR but none was provided.",
     "The LHEADR to process is invalid",
     "An invalid record type was provided",
-    "An invalid comment record was provided"
+    "An invalid COMENT record was provided",
+    "An invalid LNAME record was provided"
 };
 
 void error(MAGIC_OMF_ERROR_CODE error_code, struct MagicOMFHandle* handle)

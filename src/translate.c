@@ -113,3 +113,40 @@ void TranslatorReadCOMENT(struct MagicOMFHandle* handle)
     EndRecord(record, handle);
 
 }
+
+void TranslatorReadLNAMES(struct MagicOMFHandle* handle)
+{
+    struct RECORD* record = StartRecord(handle);
+    if (record->type != LNAMES_ID)
+    {
+        error(INVALID_LNAMES_PROVIDED, handle);
+        return;
+    }
+
+    // Read pointless byte, someone change this if I am wrong, taking a bit of an educated guess here
+    ReadUnsignedByte(&handle->next);
+    
+    char* end = handle->next + record->length;
+    struct LNAMES* prev = NULL;
+    while (handle->next < end)
+    {
+        struct LNAMES* contents = malloc(sizeof (struct LNAMES));
+        contents->next = NULL;
+        if (prev == NULL)
+        {
+            // This is the first iteration so set the record contents to these contents
+            record->contents = contents;
+        }
+        else
+        {
+            prev->next = contents;
+        }
+        prev = contents;
+
+        contents->s_len = ReadUnsignedByte(&handle->next);
+        contents->n_string = ReadStringAddTerminator(&handle->next, contents->s_len);
+    }
+
+    EndRecord(record, handle);
+
+}

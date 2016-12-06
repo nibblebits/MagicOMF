@@ -65,6 +65,14 @@ modules.  This can protect an important comment, such as a copyright message, fr
     bool no_list;
 };
 
+
+struct LNAMES
+{
+    uint8 s_len;
+    char* n_string;
+    struct LNAMES* next;
+};
+
 #ifdef __cplusplus
 }
 #endif
