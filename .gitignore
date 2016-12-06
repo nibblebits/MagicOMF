@@ -3,3 +3,5 @@ nbproject
 *.o.d
 *.dll
 *.so
+*.exe
+*.stackdump
