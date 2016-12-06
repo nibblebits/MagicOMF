@@ -30,8 +30,8 @@
 const char* error_messages[] = 
 {
     "The THEADR to process is invalid.",
-    "Expecting a THEADR but none was provided.",
-    "Expecting a LHEADR but none was provided."
+    "Expecting a THEADR or an LHEADR but none was provided.",
+    "The LHEADR to process is invalid"
 };
 
 void error(MAGIC_OMF_ERROR_CODE error_code, struct MagicOMFHandle* handle)
