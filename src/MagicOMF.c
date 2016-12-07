@@ -50,6 +50,9 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size)
         case LNAMES_ID:
             TranslatorReadLNAMES(handle);
             break;
+        case SEGDEF_ID:
+            TranslatorReadSEGDEF(handle);
+            break;
         default:
             error(INVALID_RECORD_TYPE, handle);
             break;

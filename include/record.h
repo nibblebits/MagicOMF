@@ -73,6 +73,24 @@ struct LNAMES
     struct LNAMES* next;
 };
 
+struct Attributes
+{
+    uint8 ACBP;
+    uint8 A;
+    uint8 C;
+    uint8 B;
+    uint8 P;
+};
+
+struct SEGDEF
+{
+    struct Attributes attributes;
+    uint16 seg_len;
+    uint8 seg_name_index;
+    uint8 class_name_index;
+    uint8 overlay_name_index;
+};
+
 #ifdef __cplusplus
 }
 #endif

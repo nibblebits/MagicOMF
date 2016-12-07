@@ -38,6 +38,7 @@ void TranslatorReadTHEADR(struct MagicOMFHandle* handle);
 void TranslatorReadLHEADR(struct MagicOMFHandle* handle);
 void TranslatorReadCOMENT(struct MagicOMFHandle* handle);
 void TranslatorReadLNAMES(struct MagicOMFHandle* handle);
+void TranslatorReadSEGDEF(struct MagicOMFHandle* handle);
 
 #ifdef __cplusplus
 }

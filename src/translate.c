@@ -125,7 +125,7 @@ void TranslatorReadLNAMES(struct MagicOMFHandle* handle)
 
     // Read pointless byte, someone change this if I am wrong, taking a bit of an educated guess here
     ReadUnsignedByte(&handle->next);
-    
+
     char* end = handle->next + record->length;
     struct LNAMES* prev = NULL;
     while (handle->next < end)
@@ -147,6 +147,47 @@ void TranslatorReadLNAMES(struct MagicOMFHandle* handle)
         contents->n_string = ReadStringAddTerminator(&handle->next, contents->s_len);
     }
 
+    EndRecord(record, handle);
+
+}
+
+/* 32 bit is not currently supported, translator will read from lowest possible
+ * possibility. */
+void TranslatorReadSEGDEF(struct MagicOMFHandle* handle)
+{
+    struct RECORD* record = StartRecord(handle);
+    if (record->type != SEGDEF_ID)
+    {
+        error(INVALID_SEGDEF_PROVIDED, handle);
+        return;
+    }
+
+    struct SEGDEF* contents = malloc(sizeof (struct SEGDEF));
+    record->contents = contents;
+    uint8 ACBP = ReadUnsignedByte(&handle->next);
+    uint8 A = ACBP >> 5;
+    uint8 C = (ACBP >> 2) & 0x07;
+    uint8 B = (ACBP >> 1) & 0x01;
+    uint8 P = (ACBP & 0x01);
+    contents->attributes.A = A;
+    contents->attributes.C = C;
+    contents->attributes.B = B;
+    contents->attributes.P = P;
+    contents->attributes.ACBP = ACBP;
+    contents->seg_len = ReadUnsignedWord(&handle->next);
+    
+    // When B = 0 then the segment length must also be zero.
+    if (B == 0)
+    {
+        if (!contents->seg_len != 0)
+        {
+            error(IMPROPERLY_FORMATTED_SEGDEF_PROVIDED, handle);
+            return;
+        }
+    }
+    contents->seg_name_index = ReadUnsignedByte(&handle->next);
+    contents->class_name_index = ReadUnsignedByte(&handle->next);
+    contents->overlay_name_index = ReadUnsignedByte(&handle->next);
     EndRecord(record, handle);
 
 }

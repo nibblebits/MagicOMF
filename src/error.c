@@ -34,7 +34,9 @@ const char* error_messages[] =
     "The LHEADR to process is invalid",
     "An invalid record type was provided",
     "An invalid COMENT record was provided",
-    "An invalid LNAME record was provided"
+    "An invalid LNAME record was provided",
+    "An invalid SEGDEF record was provided",
+    "The SEGDEF record provided is not formatted correctly"
 };
 
 void error(MAGIC_OMF_ERROR_CODE error_code, struct MagicOMFHandle* handle)
