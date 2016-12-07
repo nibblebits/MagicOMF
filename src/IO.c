@@ -26,6 +26,14 @@
 
 #include "IO.h"
 
+void ReadAndIgnoreBytes(char** ptr, char* end)
+{
+    while (*ptr != end)
+    {
+        ReadUnsignedByte(ptr);
+    }
+}
+
 uint8 ReadUnsignedByteNoNext(char* ptr)
 {
     uint8 v = *ptr;
@@ -35,21 +43,27 @@ uint8 ReadUnsignedByteNoNext(char* ptr)
 uint16 ReadUnsignedWordNoNext(char* ptr)
 {
     uint8 l = *ptr;
-    uint8 h = *(ptr+1);
+    uint8 h = *(ptr + 1);
     uint16 word = (h << 8) | (l);
     return word;
 }
 
 char* ReadStringAddTerminator(char** ptr, uint8 size)
 {
-    char* buf = (char*) malloc(size+1);
-    for(uint8 i = 0; i < size; i++)
+    char* buf = (char*) malloc(size + 1);
+    for (uint8 i = 0; i < size; i++)
     {
         buf[i] = **ptr;
-        *ptr+=1;
+        *ptr += 1;
     }
-    buf[size+1] = 0;
+    buf[size + 1] = 0;
     return buf;
+}
+
+char* ReadStringUntilEndAddTerminator(char** ptr, char* end)
+{
+    int size = (int) (end - *ptr);
+    return ReadStringAddTerminator(ptr, size);
 }
 
 uint8 ReadUnsignedByte(char** ptr)

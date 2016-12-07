@@ -37,6 +37,8 @@ struct RECORD
     uint16 length;
     void* contents;
     uint8 checksum;
+    bool has_checksum;
+    char* end_of_record;
     struct RECORD* next;
 };
 

@@ -34,16 +34,25 @@ struct RECORD* StartRecord(struct MagicOMFHandle* handle)
     // Read the standard record details
     record->type = ReadUnsignedByte(&handle->next);
     record->length = ReadUnsignedWord(&handle->next);
+    // -1 so end of record will point to the checksum.
+    record->end_of_record = handle->next + record->length-1;
 
     // Set the child pointer to NULL
     record->next = NULL;
+    // Assume we have a checksum until otherwise specified
+    record->has_checksum = true;
 
     return record;
 }
 
 void EndRecord(struct RECORD* record, struct MagicOMFHandle* handle)
 {
-    record->checksum = ReadUnsignedByte(&handle->next);
+
+    // Do we have a checksum? if so lets read it
+    if (record->has_checksum)
+    {
+        record->checksum = ReadUnsignedByte(&handle->next);
+    }
 
     // No root set so lets set it
     if (handle->root == NULL)
@@ -104,10 +113,21 @@ void TranslatorReadCOMENT(struct MagicOMFHandle* handle)
     record->contents = contents;
     contents->c_type = ReadUnsignedByte(&handle->next);
     contents->c_class = ReadUnsignedByte(&handle->next);
+    if (contents->c_class == COMMENT_CLASS_LINK_PASS_SEPARATOR)
+    {
+        /* Link pass seperators do not have a checksum
+         and currently have only a single subtype "01",
+         this subtype specifies that additional bytes may follow
+         determined by the record length fields but the linker should ignore
+         them.*/
+        record->has_checksum = false;
+        ReadAndIgnoreBytes(&handle->next, record->end_of_record);
 
-    uint16 string_size = record->length - 3;
-
-    contents->c_string = ReadStringAddTerminator(&handle->next, string_size);
+    }
+    else
+    {
+        contents->c_string = ReadStringUntilEndAddTerminator(&handle->next, record->end_of_record);
+    }
     contents->no_purge = (contents->c_type & 0x80) == 0x80;
     contents->no_list = (contents->c_type & 0x40) == 0x40;
     EndRecord(record, handle);
@@ -124,8 +144,8 @@ void TranslatorReadLNAMES(struct MagicOMFHandle* handle)
     }
 
     // -1 for the checksum.
-    char* end = handle->next + record->length-1;
-    
+    char* end = handle->next + record->length - 1;
+
     // Read pointless byte, someone change this if I am wrong, taking a bit of an educated guess here
     ReadUnsignedByte(&handle->next);
 

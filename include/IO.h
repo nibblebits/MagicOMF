@@ -33,11 +33,12 @@ extern "C"
 #include "types.h"
 
 
+void ReadAndIgnoreBytes(char** ptr, char* end);
 uint8 ReadUnsignedByteNoNext(char* ptr);
 uint16 ReadUnsignedWordNoNext(char* ptr);
 
 char* ReadStringAddTerminator(char** ptr, uint8 size);
-
+char* ReadStringUntilEndAddTerminator(char** ptr, char* end);
 uint8 ReadUnsignedByte(char** ptr);
 uint16 ReadUnsignedWord(char** ptr);
 uint32 ReadUnsignedInt(char** ptr);
