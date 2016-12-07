@@ -123,10 +123,12 @@ void TranslatorReadLNAMES(struct MagicOMFHandle* handle)
         return;
     }
 
+    // -1 for the checksum.
+    char* end = handle->next + record->length-1;
+
     // Read pointless byte, someone change this if I am wrong, taking a bit of an educated guess here
     ReadUnsignedByte(&handle->next);
 
-    char* end = handle->next + record->length;
     struct LNAMES* prev = NULL;
     while (handle->next < end)
     {
@@ -175,7 +177,7 @@ void TranslatorReadSEGDEF(struct MagicOMFHandle* handle)
     contents->attributes.P = P;
     contents->attributes.ACBP = ACBP;
     contents->seg_len = ReadUnsignedWord(&handle->next);
-    
+
     // When B = 0 then the segment length must also be zero.
     if (B == 0)
     {
