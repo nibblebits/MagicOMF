@@ -125,7 +125,7 @@ void TranslatorReadLNAMES(struct MagicOMFHandle* handle)
 
     // -1 for the checksum.
     char* end = handle->next + record->length-1;
-
+    
     // Read pointless byte, someone change this if I am wrong, taking a bit of an educated guess here
     ReadUnsignedByte(&handle->next);
 
