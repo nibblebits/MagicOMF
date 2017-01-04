@@ -34,9 +34,12 @@ const char* error_messages[] =
     "The LHEADR to process is invalid",
     "An invalid record type was provided",
     "An invalid COMENT record was provided",
+    "An unimplemented or illegal COMENT class was provided",
     "An invalid LNAME record was provided",
     "An invalid SEGDEF record was provided",
-    "The SEGDEF record provided is not formatted correctly"
+    "The SEGDEF record provided is not formatted correctly",
+    "An invalid PUBDEF-16 record was provided",
+    "No support for absolute addressing for PUBDEF-16 record, please use a different linker."
 };
 
 void error(MAGIC_OMF_ERROR_CODE error_code, struct MagicOMFHandle* handle)

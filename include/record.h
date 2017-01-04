@@ -54,10 +54,12 @@ struct LHEADR
     char* name_string;
 };
 
+
 struct COMENT
 {
     uint8 c_type;
     uint8 c_class;
+    bool is_link_pass_seperator;
     char* c_string;
     /* The no_purge signifies that this comment is to be preserved by utility programs that manipulate object
 modules.  This can protect an important comment, such as a copyright message, from deletion*/
@@ -91,6 +93,23 @@ struct SEGDEF
     uint8 seg_name_index;
     uint8 class_name_index;
     uint8 overlay_name_index;
+};
+
+struct PUBDEF_16_IDEN
+{
+    uint8 str_len;
+    char* name_str;
+    uint16 p_offset;
+    uint8 type_index;
+    struct PUBDEF_16_IDEN* next;
+};
+
+struct PUBDEF_16
+{
+    uint8 bg_index;
+    uint8 bs_index;
+    struct PUBDEF_16_IDEN* iden;
+    
 };
 
 #ifdef __cplusplus

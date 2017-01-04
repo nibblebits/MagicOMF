@@ -35,7 +35,7 @@ struct RECORD* StartRecord(struct MagicOMFHandle* handle)
     record->type = ReadUnsignedByte(&handle->next);
     record->length = ReadUnsignedWord(&handle->next);
     // -1 so end of record will point to the checksum.
-    record->end_of_record = handle->next + record->length-1;
+    record->end_of_record = handle->next + record->length - 1;
 
     // Set the child pointer to NULL
     record->next = NULL;
@@ -100,6 +100,29 @@ void TranslatorReadLHEADR(struct MagicOMFHandle* handle)
     EndRecord(record, handle);
 }
 
+void TranslatorReadCOMENT_Translator(struct RECORD* record, struct MagicOMFHandle* handle)
+{
+    struct COMENT* contents = (struct COMENT*) (record->contents);
+    contents->c_string = ReadStringUntilEndAddTerminator(&handle->next, record->end_of_record);
+}
+
+void TranslatorReadCOMENT_LinkPassSeparator(struct RECORD* record, struct MagicOMFHandle* handle)
+{
+    struct COMENT* contents = (struct COMENT*) (record->contents);
+    uint8 subtype = ReadUnsignedByte(&handle->next);
+    if (subtype != 1)
+    {
+        // This is a problem it should be 1.
+        // Show an error here.
+    }
+    else
+    {
+        contents->is_link_pass_seperator = true;
+        // Specification states that its possible bytes can come after the subtype but they must be ignored
+        ReadStringUntilEndAddTerminator(&handle->next, record->end_of_record);
+    }
+}
+
 void TranslatorReadCOMENT(struct MagicOMFHandle* handle)
 {
     struct RECORD* record = StartRecord(handle);
@@ -113,21 +136,21 @@ void TranslatorReadCOMENT(struct MagicOMFHandle* handle)
     record->contents = contents;
     contents->c_type = ReadUnsignedByte(&handle->next);
     contents->c_class = ReadUnsignedByte(&handle->next);
-    if (contents->c_class == COMMENT_CLASS_LINK_PASS_SEPARATOR)
-    {
-        /* Link pass seperators do not have a checksum
-         and currently have only a single subtype "01",
-         this subtype specifies that additional bytes may follow
-         determined by the record length fields but the linker should ignore
-         them.*/
-        record->has_checksum = false;
-        ReadAndIgnoreBytes(&handle->next, record->end_of_record);
+    contents->c_string = NULL;
 
-    }
-    else
+    switch (contents->c_class)
     {
-        contents->c_string = ReadStringUntilEndAddTerminator(&handle->next, record->end_of_record);
+    case COMENT_CLASS_LINK_PASS_SEPARATOR:
+        TranslatorReadCOMENT_LinkPassSeparator(record, handle);
+        break;
+    case COMENT_CLASS_TRANSLATOR:
+        TranslatorReadCOMENT_Translator(record, handle);
+        break;
+    default:
+        error(UNKNOWN_COMENT_CLASS, handle);
     }
+
+
     contents->no_purge = (contents->c_type & 0x80) == 0x80;
     contents->no_list = (contents->c_type & 0x40) == 0x40;
     EndRecord(record, handle);
@@ -145,9 +168,6 @@ void TranslatorReadLNAMES(struct MagicOMFHandle* handle)
 
     // -1 for the checksum.
     char* end = handle->next + record->length - 1;
-
-    // Read pointless byte, someone change this if I am wrong, taking a bit of an educated guess here
-    ReadUnsignedByte(&handle->next);
 
     struct LNAMES* prev = NULL;
     while (handle->next < end)
@@ -212,4 +232,60 @@ void TranslatorReadSEGDEF(struct MagicOMFHandle* handle)
     contents->overlay_name_index = ReadUnsignedByte(&handle->next);
     EndRecord(record, handle);
 
+}
+
+void TranslatorReadPUBDEF16(struct MagicOMFHandle* handle)
+{
+    struct RECORD* record = StartRecord(handle);
+    if (record->type != PUBDEF_16_ID)
+    {
+        error(INVALID_PUBDEF_16_PROVIDED, handle);
+    }
+
+    struct PUBDEF_16* contents = malloc(sizeof (struct PUBDEF_16));
+    record->contents = contents;
+    contents->bg_index = ReadUnsignedByte(&handle->next);
+    contents->bs_index = ReadUnsignedByte(&handle->next);
+    if (contents->bs_index == 0)
+    {
+        if (contents->bg_index == 0)
+        {
+            // Absolute addressing is not supported
+            error(PUBDEF_16_ABSOLUTE_ADDRESSING_NOT_SUPPORTED, handle);
+        }
+        else
+        {
+            // Ok this is legal but we do not care about the base frame so just read but ignore it
+            ReadUnsignedWord(&handle->next);
+        }
+    }
+
+    struct PUBDEF_16_IDEN* prev = NULL;
+    while (handle->next < record->end_of_record)
+    {
+        struct PUBDEF_16_IDEN* iden = malloc(sizeof (struct PUBDEF_16_IDEN));
+        iden->str_len = ReadUnsignedByte(&handle->next);
+        iden->name_str = ReadStringAddTerminator(&handle->next, iden->str_len);
+        iden->p_offset = ReadUnsignedWord(&handle->next);
+        iden->type_index = ReadUnsignedByte(&handle->next);
+        if (prev == NULL)
+        {
+            // This is the first iteration so set the contents iden pointer
+            contents->iden = iden;
+        }
+        else
+        {
+            // Set the previous identifier to point to us
+            prev->next = iden;
+        }
+        prev = iden;
+    }
+
+    EndRecord(record, handle);
+
+}
+
+void TranslatorReadPUBDEF32(struct MagicOMFHandle* handle)
+{
+    // Not supported yet.
 }

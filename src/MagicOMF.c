@@ -36,6 +36,7 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size)
             && !handle->has_error)
     {
         type = ReadUnsignedByteNoNext(handle->next);
+        handle->record_type = type;
         switch (type)
         {
         case THEADR_ID:
@@ -52,6 +53,9 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size)
             break;
         case SEGDEF_ID:
             TranslatorReadSEGDEF(handle);
+            break;
+        case PUBDEF_16_ID:
+            TranslatorReadPUBDEF16(handle);
             break;
         default:
             error(INVALID_RECORD_TYPE, handle);

@@ -36,9 +36,13 @@ struct RECORD* StartRecord();
 void EndRecord(struct RECORD* record, struct MagicOMFHandle* handle);
 void TranslatorReadTHEADR(struct MagicOMFHandle* handle);
 void TranslatorReadLHEADR(struct MagicOMFHandle* handle);
+void TranslatorReadCOMENT_Translator(struct RECORD* record, struct MagicOMFHandle* handle);
+void TranslatorReadCOMENT_LinkPassSeparator(struct RECORD* record, struct MagicOMFHandle* handle);
 void TranslatorReadCOMENT(struct MagicOMFHandle* handle);
 void TranslatorReadLNAMES(struct MagicOMFHandle* handle);
 void TranslatorReadSEGDEF(struct MagicOMFHandle* handle);
+void TranslatorReadPUBDEF16(struct MagicOMFHandle* handle);
+void TranslatorReadPUBDEF32(struct MagicOMFHandle* handle);
 
 #ifdef __cplusplus
 }
