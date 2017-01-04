@@ -112,6 +112,34 @@ struct PUBDEF_16
     
 };
 
+struct LEDATA_16
+{
+    uint8 seg_index;
+    uint16 data_offset;
+    int data_bytes_size;
+    char* data_bytes;
+};
+
+// Not yet implemented.
+struct FIXUPP_16_THREAD_SUBRECORD
+{
+    
+};
+
+struct FIXUPP_16_FIXUP_SUBRECORD
+{
+    // locat
+    uint8 mode;
+    uint16 location;
+    uint16 data_record_offset;
+    
+    uint8 fix_data;
+    uint8 frame_datum;
+    uint8 target_datum;
+    uint16 target_displacement;
+    
+};
+
 #ifdef __cplusplus
 }
 #endif

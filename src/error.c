@@ -39,7 +39,11 @@ const char* error_messages[] =
     "An invalid SEGDEF record was provided",
     "The SEGDEF record provided is not formatted correctly",
     "An invalid PUBDEF-16 record was provided",
-    "No support for absolute addressing for PUBDEF-16 record, please use a different linker."
+    "No support for absolute addressing for PUBDEF-16 record, please use a different linker.",
+    "An invalid LEDATA record was provided",
+    "An invalid FIXUPP-16 record was provided",
+    "THREAD's in FIXUPP-16 records are not supported by this linker",
+    "The mode or location selected for the FIXUPP-16 is not supported"
 };
 
 void error(MAGIC_OMF_ERROR_CODE error_code, struct MagicOMFHandle* handle)

@@ -66,6 +66,19 @@ char* ReadStringUntilEndAddTerminator(char** ptr, char* end)
     return ReadStringAddTerminator(ptr, size);
 }
 
+char* ReadDataUntilEnd(char** ptr, char* end)
+{
+    int size = (int) (end - *ptr);
+    char* buf = (char*) malloc(size);
+    for (uint8 i = 0; i < size; i++)
+    {
+        buf[i] = **ptr;
+        *ptr += 1;
+    }
+    
+    return buf;
+}
+
 uint8 ReadUnsignedByte(char** ptr)
 {
     uint8 b = ReadUnsignedByteNoNext(*ptr);
@@ -86,7 +99,7 @@ uint32 ReadUnsignedInt(char** ptr)
             ((**ptr << 8)&0xff0000) | // move byte 1 to byte 2
             ((**ptr >> 8)&0xff00) | // move byte 2 to byte 1
             ((**ptr << 24)&0xff000000); // byte 0 to byte 3
-    
+
     return swapped;
 }
 

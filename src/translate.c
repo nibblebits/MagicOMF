@@ -285,7 +285,79 @@ void TranslatorReadPUBDEF16(struct MagicOMFHandle* handle)
 
 }
 
-void TranslatorReadPUBDEF32(struct MagicOMFHandle* handle)
+void TranslatorReadLEDATA16(struct MagicOMFHandle* handle)
 {
-    // Not supported yet.
+    struct RECORD* record = StartRecord(handle);
+    if (record->type != LEDATA_16_ID)
+    {
+        error(INVALID_LEDATA_16_PROVIDED, handle);
+    }
+
+    struct LEDATA_16* contents = malloc(sizeof (struct LEDATA_16));
+    contents->seg_index = ReadUnsignedByte(&handle->next);
+    if (contents->seg_index == 0)
+    {
+        // Seg index must be non zero!
+        error(INVALID_LEDATA_16_PROVIDED, handle);
+    }
+
+    contents->data_offset = ReadUnsignedWord(&handle->next);
+
+    // -4 due to seg index, data offset and checksum.
+    contents->data_bytes_size = record->length - 4;
+    if (contents->data_bytes_size > 1024)
+    {
+        // Specification prohibits the data bytes size being above 1024
+        error(INVALID_LEDATA_16_PROVIDED, handle);
+    }
+
+    contents->data_bytes = ReadDataUntilEnd(&handle->next, record->end_of_record);
+
+    EndRecord(record, handle);
+}
+
+void TranslatorReadFIXUPP16(struct MagicOMFHandle* handle)
+{
+    struct RECORD* record = StartRecord(handle);
+    if (record->type != FIXUPP_16_ID)
+    {
+        error(INVALID_FIXUPP_16_PROVIDED, handle);
+    }
+
+    while (handle->next != record->end_of_record)
+    {
+        uint8 thread_or_fixup = ReadUnsignedByte(&handle->next);
+        if (thread_or_fixup & 0x80)
+        {
+            // Ok this is a FIXUP
+            // Build the locat
+            uint16 locat = (thread_or_fixup << 8 | ReadUnsignedByte(&handle->next));
+            record->contents = malloc(sizeof (struct FIXUPP_16_FIXUP_SUBRECORD));
+            TranslatorReadFIXUPP16_FIXUP_SUBRECORD(locat, record, handle);
+        }
+        else
+        {
+            // THREAD not supported
+            error(FIXUPP_16_THREAD_NOT_SUPPORTED, handle);
+        }
+    }
+    EndRecord(record, handle);
+}
+
+void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct RECORD* record, struct MagicOMFHandle* handle)
+{
+    struct FIXUPP_16_FIXUP_SUBRECORD* contents = (struct FIXUPP_16_FIXUP_SUBRECORD*) (record->contents);
+    contents->mode = (locat >> 14) & 0x01;
+    contents->location = (locat >> 10) & 0x0f;
+    contents->data_record_offset = (locat) & 0x3ff;
+
+    // Ok only segment relative fixups and 16 bit offsets are currently supported
+    if (contents->mode != FIXUPP_MODE_SEGMENT_RELATIVE_FIXUP
+            || contents->location != FIXUPP_LOCATION_16_BIT_OFFSET)
+    {
+        error(FIXUPP_16_MODE_OR_LOCATION_NOT_SUPPORTED, handle);
+    }
+
+    // Lets get the target displacement
+    contents->target_displacement = ReadUnsignedWord(&handle->next);
 }

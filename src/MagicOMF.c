@@ -57,6 +57,12 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size)
         case PUBDEF_16_ID:
             TranslatorReadPUBDEF16(handle);
             break;
+        case LEDATA_16_ID:
+            TranslatorReadLEDATA16(handle);
+            break;
+        case FIXUPP_16_ID:
+            TranslatorReadFIXUPP16(handle);
+            break;
         default:
             error(INVALID_RECORD_TYPE, handle);
             break;
