@@ -357,7 +357,42 @@ void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct RECORD* record,
     {
         error(FIXUPP_16_MODE_OR_LOCATION_NOT_SUPPORTED, handle);
     }
+    
+    uint8 fix_data = ReadUnsignedByte(&handle->next);
+    uint8 F = (fix_data >> 7) & 0x01;
+    uint8 frame = (fix_data >> 4) & 0x07;
+    uint8 T = (fix_data >> 3) & 0x01;
+    uint8 P = (fix_data >> 2) & 0x01;
+    uint8 targt = (fix_data) & 0x03;
+    
+    // We don't support a lot of these options at the moment.
+    if (F == 1 || T == 1 || P == 0)
+    {
+        error(FIXUPP_16_FIX_DATA_UNSUPPORTED, handle);
+    }
+    
+    // Read the frame datum field
+    contents->frame_datum = ReadUnsignedByte(&handle->next);
+}
 
-    // Lets get the target displacement
-    contents->target_displacement = ReadUnsignedWord(&handle->next);
+void TranslatorReadMODEND16(struct MagicOMFHandle* handle)
+{
+    struct RECORD* record = StartRecord(handle);
+    if (record->type != MODEND_16_ID)
+    {
+        error(INVALID_MODEND_16_PROVIDED, handle);
+    }
+
+    struct MODEND_16* contents = malloc(sizeof (struct MODEND_16));
+    uint8 module_type = ReadUnsignedByte(&handle->next);
+    if (module_type & 0x40)
+    {
+        // We don't support start addresses
+        error(MODEND_16_MODULE_TYPE_UNSUPPORTED, handle);
+    }
+    
+    contents->is_main = (module_type >> 6) & 0x01;
+    contents->has_start_address = (module_type >> 7);
+    
+    EndRecord(record, handle);
 }

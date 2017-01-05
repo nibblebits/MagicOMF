@@ -140,6 +140,12 @@ struct FIXUPP_16_FIXUP_SUBRECORD
     
 };
 
+struct MODEND_16
+{
+    // Module Type
+    bool is_main;
+    bool has_start_address;
+};
 #ifdef __cplusplus
 }
 #endif

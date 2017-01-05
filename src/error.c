@@ -43,7 +43,10 @@ const char* error_messages[] =
     "An invalid LEDATA record was provided",
     "An invalid FIXUPP-16 record was provided",
     "THREAD's in FIXUPP-16 records are not supported by this linker",
-    "The mode or location selected for the FIXUPP-16 is not supported"
+    "The mode or location selected for the FIXUPP-16 is not supported",
+    "The options in the fix data byte for the FIXUPP-16 record are not supported",
+    "The MODEND-16 record to process is invalid",
+    "The module type for this MODEND-16 record is not supported"
 };
 
 void error(MAGIC_OMF_ERROR_CODE error_code, struct MagicOMFHandle* handle)

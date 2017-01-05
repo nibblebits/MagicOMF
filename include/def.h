@@ -41,7 +41,8 @@ enum
     SEGDEF_ID = 0x98,
     PUBDEF_16_ID = 0x90,
     LEDATA_16_ID = 0xa0,
-    FIXUPP_16_ID = 0x9c
+    FIXUPP_16_ID = 0x9c,
+    MODEND_16_ID = 0x8a
 };
 
 enum
