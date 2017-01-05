@@ -40,6 +40,7 @@ struct RECORD
     bool has_checksum;
     char* end_of_record;
     struct RECORD* next;
+    struct RECORD* prev;
 };
 
 struct THEADR
@@ -54,7 +55,6 @@ struct LHEADR
     char* name_string;
 };
 
-
 struct COMENT
 {
     uint8 c_type;
@@ -64,11 +64,10 @@ struct COMENT
     /* The no_purge signifies that this comment is to be preserved by utility programs that manipulate object
 modules.  This can protect an important comment, such as a copyright message, from deletion*/
     bool no_purge;
-/* The no_list signifies that a comment should not be shown to the utility programs that
- list the object file contents*/
+    /* The no_list signifies that a comment should not be shown to the utility programs that
+     list the object file contents*/
     bool no_list;
 };
-
 
 struct LNAMES
 {
@@ -93,8 +92,8 @@ struct SEGDEF
     uint8 seg_name_index;
     uint8 class_name_index;
     uint8 overlay_name_index;
-    
-    // Some extras, not related to the binary
+
+    // Extras, not related to the binary
     char* class_name_str;
 };
 
@@ -112,7 +111,7 @@ struct PUBDEF_16
     uint8 bg_index;
     uint8 bs_index;
     struct PUBDEF_16_IDEN* iden;
-    
+
 };
 
 struct LEDATA_16
@@ -121,26 +120,39 @@ struct LEDATA_16
     uint16 data_offset;
     int data_bytes_size;
     char* data_bytes;
+
+    // Extras, not related to the binary
+    struct SEGDEF* segdef_record;
 };
 
 // Not yet implemented.
+
 struct FIXUPP_16_THREAD_SUBRECORD
 {
-    
 };
 
+struct FIXUP_16_SUBRECORD_DESCRIPTOR
+{
+    uint8 subrecord_type;
+    const void* subrecord;
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* next_subrecord_descriptor;
+};
 struct FIXUPP_16_FIXUP_SUBRECORD
 {
     // locat
     uint8 mode;
     uint16 location;
     uint16 data_record_offset;
-    
+
     uint8 fix_data;
     uint8 frame_datum;
     uint8 target_datum;
     uint16 target_displacement;
     
+    // Extras, not related to the binary
+    struct LEDATA_16* target_data;
+    struct LEDATA_16* relating_data;
+
 };
 
 struct MODEND_16

@@ -31,9 +31,11 @@ extern "C"
 #endif
 
 #include "error.h"
+#include "record.h"
     
 struct RECORD* StartRecord();
 void EndRecord(struct RECORD* record, struct MagicOMFHandle* handle);
+void TranslatorSkipRecord(struct MagicOMFHandle* handle);
 void TranslatorReadTHEADR(struct MagicOMFHandle* handle);
 void TranslatorReadLHEADR(struct MagicOMFHandle* handle);
 void TranslatorReadCOMENT_Translator(struct RECORD* record, struct MagicOMFHandle* handle);
@@ -44,9 +46,10 @@ void TranslatorReadSEGDEF(struct MagicOMFHandle* handle);
 void TranslatorReadPUBDEF16(struct MagicOMFHandle* handle);
 void TranslatorReadLEDATA16(struct MagicOMFHandle* handle);
 void TranslatorReadFIXUPP16(struct MagicOMFHandle* handle);
-void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct RECORD* record, struct MagicOMFHandle* handle);
+void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct FIXUP_16_SUBRECORD_DESCRIPTOR* subrecord_descriptor, struct MagicOMFHandle* handle);
 void TranslatorReadMODEND16(struct MagicOMFHandle* handle);
-
+void TranslatorFinalize(struct MagicOMFHandle* handle);
+void TranslatorFinalize_FIXUPP_16(struct RECORD* record, struct MagicOMFHandle* handle);
 #ifdef __cplusplus
 }
 #endif

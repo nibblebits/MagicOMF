@@ -16,8 +16,10 @@ extern "C" {
 #include "types.h"
 #include "record.h"
     
-struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size);
+struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimplemented_records);
 char* MagicOMFGetLNAMESNameByIndex(struct MagicOMFHandle* handle, uint8 index);
+struct SEGDEF* MagicOMFGetSEGDEFByIndex(struct MagicOMFHandle* handle, uint8 index);
+struct LEDATA_16* MagicOMFGetLEDATABySegmentIndex(struct MagicOMFHandle* handle, uint8 index);
 const char* MagicOMFErrorMessage(MAGIC_OMF_ERROR_CODE error_id);
 #ifdef __cplusplus
 }

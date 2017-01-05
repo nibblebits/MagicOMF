@@ -47,6 +47,12 @@ enum
 
 enum
 {
+    FIXUPP_THREAD_SUBRECORD,
+    FIXUPP_FIXUP_SUBRECORD
+};
+
+enum
+{
     FIXUPP_MODE_SELF_RELATIVE_FIXUP,
     FIXUPP_MODE_SEGMENT_RELATIVE_FIXUP
 };
@@ -122,6 +128,8 @@ struct MagicOMFHandle
     char* next;
     struct RECORD* root;
     struct RECORD* last;
+
+    bool skip_unimplemented_records;
 
     MAGIC_OMF_ERROR_CODE last_error_code;
     bool has_error;

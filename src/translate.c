@@ -40,6 +40,10 @@ struct RECORD* StartRecord(struct MagicOMFHandle* handle)
 
     // Set the child pointer to NULL
     record->next = NULL;
+
+    // Lets set the previous
+    record->prev = handle->last;
+
     // Assume we have a checksum until otherwise specified
     record->has_checksum = true;
 
@@ -66,6 +70,15 @@ void EndRecord(struct RECORD* record, struct MagicOMFHandle* handle)
         handle->last->next = record;
     }
     handle->last = record;
+}
+
+void TranslatorSkipRecord(struct MagicOMFHandle* handle)
+{
+    ReadUnsignedByte(&handle->next);
+    uint16 size = ReadUnsignedWord(&handle->next);
+    
+    // Now skip the records contents
+    ReadAndIgnoreBytes(&handle->next, handle->next+size);
 }
 
 void TranslatorReadTHEADR(struct MagicOMFHandle* handle)
@@ -166,7 +179,7 @@ void TranslatorReadLNAMES(struct MagicOMFHandle* handle)
         error(INVALID_LNAMES_PROVIDED, handle);
         return;
     }
-    
+
     struct LNAMES* prev = NULL;
     struct LNAMES* root_lnames = NULL;
     while (handle->next < record->end_of_record)
@@ -320,7 +333,9 @@ void TranslatorReadLEDATA16(struct MagicOMFHandle* handle)
     }
 
     contents->data_bytes = ReadDataUntilEnd(&handle->next, record->end_of_record);
+    contents->segdef_record = MagicOMFGetSEGDEFByIndex(handle, contents->seg_index);
 
+    record->contents = contents;
     EndRecord(record, handle);
 }
 
@@ -332,36 +347,55 @@ void TranslatorReadFIXUPP16(struct MagicOMFHandle* handle)
         error(INVALID_FIXUPP_16_PROVIDED, handle);
     }
 
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* root_subrecord_desc = NULL;
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* prev_subrecord_desc = NULL;
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* subrecord_desc = NULL;
     while (handle->next < record->end_of_record)
     {
+        subrecord_desc = malloc(sizeof (struct FIXUP_16_SUBRECORD_DESCRIPTOR));
+        subrecord_desc->next_subrecord_descriptor = NULL;
+        if (prev_subrecord_desc != NULL)
+        {
+            prev_subrecord_desc->next_subrecord_descriptor = subrecord_desc;
+        }
+
+        if (root_subrecord_desc == NULL)
+        {
+            root_subrecord_desc = subrecord_desc;
+        }
+
         uint8 thread_or_fixup = ReadUnsignedByte(&handle->next);
         if (thread_or_fixup & 0x80)
         {
+            subrecord_desc->subrecord_type = FIXUPP_FIXUP_SUBRECORD;
             // Ok this is a FIXUP
             // Build the locat
             uint16 locat = (thread_or_fixup << 8 | ReadUnsignedByte(&handle->next));
-            record->contents = malloc(sizeof (struct FIXUPP_16_FIXUP_SUBRECORD));
-            TranslatorReadFIXUPP16_FIXUP_SUBRECORD(locat, record, handle);
+            TranslatorReadFIXUPP16_FIXUP_SUBRECORD(locat, subrecord_desc, handle);
         }
         else
         {
             // THREAD not supported
             error(FIXUPP_16_THREAD_NOT_SUPPORTED, handle);
         }
+
+        prev_subrecord_desc = subrecord_desc;
     }
+
+    record->contents = root_subrecord_desc;
     EndRecord(record, handle);
 }
 
-void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct RECORD* record, struct MagicOMFHandle* handle)
+void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct FIXUP_16_SUBRECORD_DESCRIPTOR* subrecord_descriptor, struct MagicOMFHandle* handle)
 {
-    struct FIXUPP_16_FIXUP_SUBRECORD* contents = (struct FIXUPP_16_FIXUP_SUBRECORD*) (record->contents);
-    contents->mode = (locat >> 14) & 0x01;
-    contents->location = (locat >> 10) & 0x0f;
-    contents->data_record_offset = (locat) & 0x3ff;
+    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = malloc(sizeof (struct FIXUPP_16_FIXUP_SUBRECORD));
+    subrecord->mode = (locat >> 14) & 0x01;
+    subrecord->location = (locat >> 10) & 0x0f;
+    subrecord->data_record_offset = (locat) & 0x3ff;
 
     // Ok only segment relative fixups and 16 bit offsets are currently supported
-    if (contents->mode != FIXUPP_MODE_SEGMENT_RELATIVE_FIXUP
-            || contents->location != FIXUPP_LOCATION_16_BIT_OFFSET)
+    if (subrecord->mode != FIXUPP_MODE_SEGMENT_RELATIVE_FIXUP
+            || subrecord->location != FIXUPP_LOCATION_16_BIT_OFFSET)
     {
         error(FIXUPP_16_MODE_OR_LOCATION_NOT_SUPPORTED, handle);
     }
@@ -380,7 +414,9 @@ void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct RECORD* record,
     }
 
     // Read the frame datum field
-    contents->frame_datum = ReadUnsignedByte(&handle->next);
+    subrecord->frame_datum = ReadUnsignedByte(&handle->next);
+
+    subrecord_descriptor->subrecord = subrecord;
 }
 
 void TranslatorReadMODEND16(struct MagicOMFHandle* handle)
@@ -403,4 +439,42 @@ void TranslatorReadMODEND16(struct MagicOMFHandle* handle)
     contents->has_start_address = (module_type >> 7);
 
     EndRecord(record, handle);
+}
+
+void TranslatorFinalize(struct MagicOMFHandle* handle)
+{
+    struct RECORD* record = handle->root;
+    while (record != NULL)
+    {
+        if (record->type == FIXUPP_16_ID)
+        {
+            TranslatorFinalize_FIXUPP_16(record, handle);
+        }
+        record = record->next;
+    }
+}
+
+void TranslatorFinalize_FIXUPP_16(struct RECORD* record, struct MagicOMFHandle* handle)
+{
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* record_descriptor = (struct FIXUP_16_SUBRECORD_DESCRIPTOR*) (record->contents);
+    while (record_descriptor != NULL)
+    {
+        if (record_descriptor->subrecord_type == FIXUPP_FIXUP_SUBRECORD)
+        {
+            struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) (record_descriptor->subrecord);
+            if (record->prev == NULL || record->prev->type != LEDATA_16_ID)
+            {
+                // No LEDATA was found we are expecting it.
+                error(BINARY_FORMATTING_PROBLEM, handle);
+            }
+            else
+            {
+                struct LEDATA_16* prev_ledata_16 = (struct LEDATA_16*) (record->prev->contents);
+                // OMF specifies that the target data will be the previous LEDATA record
+                subrecord->target_data = prev_ledata_16;
+                subrecord->relating_data = MagicOMFGetLEDATABySegmentIndex(handle, subrecord->frame_datum);
+            }
+            record_descriptor = record_descriptor->next_subrecord_descriptor;
+        }
+    }
 }
