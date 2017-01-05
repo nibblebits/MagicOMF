@@ -75,6 +75,31 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size)
     return handle;
 }
 
+char* MagicOMFGetLNAMESNameByIndex(struct MagicOMFHandle* handle, uint8 index)
+{
+    struct RECORD* record = handle->root;
+    int c_index = 1;
+    while (record != NULL)
+    {
+        if (record->type == LNAMES_ID)
+        {
+            struct LNAMES* lnames_record = (struct LNAMES*) (record->contents);
+            while (lnames_record != NULL)
+            {
+                if (c_index == index)
+                {
+                    return lnames_record->n_string;
+                }
+                c_index++;
+                lnames_record = lnames_record->next;
+            }
+        }
+        record = record->next;
+    }
+
+    return NULL;
+}
+
 const char* MagicOMFErrorMessage(MAGIC_OMF_ERROR_CODE error_id)
 {
     return GetErrorMessage(error_id);

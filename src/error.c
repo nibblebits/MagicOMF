@@ -46,7 +46,8 @@ const char* error_messages[] =
     "The mode or location selected for the FIXUPP-16 is not supported",
     "The options in the fix data byte for the FIXUPP-16 record are not supported",
     "The MODEND-16 record to process is invalid",
-    "The module type for this MODEND-16 record is not supported"
+    "The module type for this MODEND-16 record is not supported",
+    "The record associated its self with an LNAMES record that did not exist."
 };
 
 void error(MAGIC_OMF_ERROR_CODE error_code, struct MagicOMFHandle* handle)

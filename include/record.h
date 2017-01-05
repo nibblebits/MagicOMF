@@ -93,6 +93,9 @@ struct SEGDEF
     uint8 seg_name_index;
     uint8 class_name_index;
     uint8 overlay_name_index;
+    
+    // Some extras, not related to the binary
+    char* class_name_str;
 };
 
 struct PUBDEF_16_IDEN

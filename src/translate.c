@@ -18,6 +18,7 @@
 #include "translate.h"
 #include "record.h"
 #include "IO.h"
+#include "MagicOMF.h"
 #include <stdlib.h>
 
 /* 
@@ -165,30 +166,29 @@ void TranslatorReadLNAMES(struct MagicOMFHandle* handle)
         error(INVALID_LNAMES_PROVIDED, handle);
         return;
     }
-
-    // -1 for the checksum.
-    char* end = handle->next + record->length - 1;
-
+    
     struct LNAMES* prev = NULL;
-    while (handle->next < end)
+    struct LNAMES* root_lnames = NULL;
+    while (handle->next < record->end_of_record)
     {
         struct LNAMES* contents = malloc(sizeof (struct LNAMES));
+        contents->s_len = ReadUnsignedByte(&handle->next);
+        contents->n_string = ReadStringAddTerminator(&handle->next, contents->s_len);
         contents->next = NULL;
-        if (prev == NULL)
+
+        if (root_lnames == NULL)
         {
-            // This is the first iteration so set the record contents to these contents
-            record->contents = contents;
+            // This must be the root
+            root_lnames = contents;
         }
-        else
+        else if (prev->next == NULL)
         {
             prev->next = contents;
         }
         prev = contents;
-
-        contents->s_len = ReadUnsignedByte(&handle->next);
-        contents->n_string = ReadStringAddTerminator(&handle->next, contents->s_len);
     }
 
+    record->contents = root_lnames;
     EndRecord(record, handle);
 
 }
@@ -230,6 +230,14 @@ void TranslatorReadSEGDEF(struct MagicOMFHandle* handle)
     contents->seg_name_index = ReadUnsignedByte(&handle->next);
     contents->class_name_index = ReadUnsignedByte(&handle->next);
     contents->overlay_name_index = ReadUnsignedByte(&handle->next);
+
+    // Lets set the LNAME string that this SEGDEF is using just for ease of access
+    contents->class_name_str = MagicOMFGetLNAMESNameByIndex(handle, contents->seg_name_index);
+    if (contents->class_name_str == NULL)
+    {
+        // The file doesn't define an LNAME with the index specified...
+        error(LNAMES_NOT_FOUND, handle);
+    }
     EndRecord(record, handle);
 
 }
@@ -324,7 +332,7 @@ void TranslatorReadFIXUPP16(struct MagicOMFHandle* handle)
         error(INVALID_FIXUPP_16_PROVIDED, handle);
     }
 
-    while (handle->next != record->end_of_record)
+    while (handle->next < record->end_of_record)
     {
         uint8 thread_or_fixup = ReadUnsignedByte(&handle->next);
         if (thread_or_fixup & 0x80)
@@ -357,20 +365,20 @@ void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct RECORD* record,
     {
         error(FIXUPP_16_MODE_OR_LOCATION_NOT_SUPPORTED, handle);
     }
-    
+
     uint8 fix_data = ReadUnsignedByte(&handle->next);
     uint8 F = (fix_data >> 7) & 0x01;
     uint8 frame = (fix_data >> 4) & 0x07;
     uint8 T = (fix_data >> 3) & 0x01;
     uint8 P = (fix_data >> 2) & 0x01;
     uint8 targt = (fix_data) & 0x03;
-    
+
     // We don't support a lot of these options at the moment.
     if (F == 1 || T == 1 || P == 0)
     {
         error(FIXUPP_16_FIX_DATA_UNSUPPORTED, handle);
     }
-    
+
     // Read the frame datum field
     contents->frame_datum = ReadUnsignedByte(&handle->next);
 }
@@ -390,9 +398,9 @@ void TranslatorReadMODEND16(struct MagicOMFHandle* handle)
         // We don't support start addresses
         error(MODEND_16_MODULE_TYPE_UNSUPPORTED, handle);
     }
-    
+
     contents->is_main = (module_type >> 6) & 0x01;
     contents->has_start_address = (module_type >> 7);
-    
+
     EndRecord(record, handle);
 }

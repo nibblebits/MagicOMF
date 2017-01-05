@@ -17,6 +17,7 @@ extern "C" {
 #include "record.h"
     
 struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size);
+char* MagicOMFGetLNAMESNameByIndex(struct MagicOMFHandle* handle, uint8 index);
 const char* MagicOMFErrorMessage(MAGIC_OMF_ERROR_CODE error_id);
 #ifdef __cplusplus
 }
