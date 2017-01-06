@@ -42,7 +42,8 @@ enum
     PUBDEF_16_ID = 0x90,
     LEDATA_16_ID = 0xa0,
     FIXUPP_16_ID = 0x9c,
-    MODEND_16_ID = 0x8a
+    MODEND_16_ID = 0x8a,
+    EXTDEF_ID = 0x8c
 };
 
 enum
@@ -122,6 +123,10 @@ enum
 
 };
 
+enum
+{
+    EXTDEF_TYPE_INDEX_NO_TYPDEF
+};
 struct MagicOMFHandle
 {
     char* buf;

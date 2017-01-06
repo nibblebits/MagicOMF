@@ -76,9 +76,9 @@ void TranslatorSkipRecord(struct MagicOMFHandle* handle)
 {
     ReadUnsignedByte(&handle->next);
     uint16 size = ReadUnsignedWord(&handle->next);
-    
+
     // Now skip the records contents
-    ReadAndIgnoreBytes(&handle->next, handle->next+size);
+    ReadAndIgnoreBytes(&handle->next, handle->next + size);
 }
 
 void TranslatorReadTHEADR(struct MagicOMFHandle* handle)
@@ -393,11 +393,10 @@ void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct FIXUP_16_SUBREC
     subrecord->location = (locat >> 10) & 0x0f;
     subrecord->data_record_offset = (locat) & 0x3ff;
 
-    // Ok only segment relative fixups and 16 bit offsets are currently supported
-    if (subrecord->mode != FIXUPP_MODE_SEGMENT_RELATIVE_FIXUP
-            || subrecord->location != FIXUPP_LOCATION_16_BIT_OFFSET)
+    // Ok only 16 bit offsets are currently supported
+    if (subrecord->location != FIXUPP_LOCATION_16_BIT_OFFSET)
     {
-        error(FIXUPP_16_MODE_OR_LOCATION_NOT_SUPPORTED, handle);
+        error(FIXUPP_16_LOCATION_NOT_SUPPORTED, handle);
     }
 
     uint8 fix_data = ReadUnsignedByte(&handle->next);
@@ -441,6 +440,37 @@ void TranslatorReadMODEND16(struct MagicOMFHandle* handle)
     EndRecord(record, handle);
 }
 
+void TranslatorReadEXTDEF(struct MagicOMFHandle* handle)
+{
+    struct RECORD* record = StartRecord(handle);
+    if (record->type != EXTDEF_ID)
+    {
+        error(INVALID_EXTDEF_ID_PROVIDED, handle);
+    }
+
+    struct EXTDEF* extdef_root_contents = malloc(sizeof (struct EXTDEF));
+    record->contents = extdef_root_contents;
+   
+    struct EXTDEF* prev = NULL;
+    struct EXTDEF* contents = extdef_root_contents;
+    while (handle->next < record->end_of_record)
+    {
+        contents->s_len = ReadUnsignedByte(&handle->next);
+        contents->name_str = ReadStringAddTerminator(&handle->next, contents->s_len);
+        contents->type_index = ReadUnsignedByte(&handle->next);
+        
+        if (prev != NULL)
+        {
+            prev->next = contents;
+        }
+        
+        prev = contents;
+        
+        contents = malloc(sizeof(struct EXTDEF));
+    }
+    EndRecord(record, handle);
+}
+
 void TranslatorFinalize(struct MagicOMFHandle* handle)
 {
     struct RECORD* record = handle->root;
@@ -472,7 +502,15 @@ void TranslatorFinalize_FIXUPP_16(struct RECORD* record, struct MagicOMFHandle* 
                 struct LEDATA_16* prev_ledata_16 = (struct LEDATA_16*) (record->prev->contents);
                 // OMF specifies that the target data will be the previous LEDATA record
                 subrecord->target_data = prev_ledata_16;
-                subrecord->relating_data = MagicOMFGetLEDATABySegmentIndex(handle, subrecord->frame_datum);
+
+                if (subrecord->mode == FIXUPP_MODE_SELF_RELATIVE_FIXUP)
+                {
+                    subrecord->relating_extdef = MagicOMFGetEXTDEFByIndex(handle, subrecord->frame_datum);
+                }
+                else
+                {
+                    subrecord->relating_data = MagicOMFGetLEDATABySegmentIndex(handle, subrecord->frame_datum);
+                }
             }
             record_descriptor = record_descriptor->next_subrecord_descriptor;
         }

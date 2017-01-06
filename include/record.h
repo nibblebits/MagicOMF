@@ -152,6 +152,7 @@ struct FIXUPP_16_FIXUP_SUBRECORD
     // Extras, not related to the binary
     struct LEDATA_16* target_data;
     struct LEDATA_16* relating_data;
+    struct EXTDEF* relating_extdef;
 
 };
 
@@ -161,6 +162,17 @@ struct MODEND_16
     bool is_main;
     bool has_start_address;
 };
+
+struct EXTDEF
+{
+    uint8 s_len;
+    const char* name_str;
+    uint8 type_index;
+    struct EXTDEF* next;
+};
+
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -48,6 +48,7 @@ void TranslatorReadLEDATA16(struct MagicOMFHandle* handle);
 void TranslatorReadFIXUPP16(struct MagicOMFHandle* handle);
 void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct FIXUP_16_SUBRECORD_DESCRIPTOR* subrecord_descriptor, struct MagicOMFHandle* handle);
 void TranslatorReadMODEND16(struct MagicOMFHandle* handle);
+void TranslatorReadEXTDEF(struct MagicOMFHandle* handle);
 void TranslatorFinalize(struct MagicOMFHandle* handle);
 void TranslatorFinalize_FIXUPP_16(struct RECORD* record, struct MagicOMFHandle* handle);
 #ifdef __cplusplus

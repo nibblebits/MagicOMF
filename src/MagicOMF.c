@@ -67,6 +67,9 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimp
         case MODEND_16_ID:
             TranslatorReadMODEND16(handle);
             break;
+        case EXTDEF_ID:
+            TranslatorReadEXTDEF(handle);
+            break;
         default:
             if (handle->skip_unimplemented_records)
             {
@@ -143,6 +146,31 @@ struct LEDATA_16* MagicOMFGetLEDATABySegmentIndex(struct MagicOMFHandle* handle,
             if (ledata_contents->seg_index == index)
             {
                 return ledata_contents;
+            }
+        }
+        record = record->next;
+    }
+
+    return NULL;
+}
+
+struct EXTDEF* MagicOMFGetEXTDEFByIndex(struct MagicOMFHandle* handle, uint8 index)
+{
+    struct RECORD* record = handle->root;
+    int c_index = 1;
+    while (record != NULL)
+    {
+        if (record->type == EXTDEF_ID)
+        {
+            struct EXTDEF* extdef_record = (struct EXTDEF*) (record->contents);
+            while (extdef_record != NULL)
+            {
+                if (c_index == index)
+                {
+                    return extdef_record;
+                }
+                c_index++;
+                extdef_record = extdef_record->next;
             }
         }
         record = record->next;
