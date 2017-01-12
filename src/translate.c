@@ -19,6 +19,7 @@
 #include "record.h"
 #include "IO.h"
 #include "MagicOMF.h"
+#include "builder.h"
 #include <stdlib.h>
 
 /* 
@@ -31,23 +32,10 @@
 
 struct RECORD* StartRecord(struct MagicOMFHandle* handle)
 {
-    struct RECORD* record = (struct RECORD*) malloc(sizeof (struct RECORD));
     // Read the standard record details
-    record->type = ReadUnsignedByte(&handle->next);
-    record->length = ReadUnsignedWord(&handle->next);
-    // -1 so end of record will point to the checksum.
-    record->end_of_record = handle->next + record->length - 1;
-
-    // Set the child pointer to NULL
-    record->next = NULL;
-
-    // Lets set the previous
-    record->prev = handle->last;
-
-    // Assume we have a checksum until otherwise specified
-    record->has_checksum = true;
-
-    return record;
+    uint8 type = ReadUnsignedByte(&handle->next);
+    uint16 length = ReadUnsignedWord(&handle->next);
+    return BuildRecord(handle, type, length, 0);
 }
 
 void EndRecord(struct RECORD* record, struct MagicOMFHandle* handle)
@@ -59,17 +47,8 @@ void EndRecord(struct RECORD* record, struct MagicOMFHandle* handle)
         record->checksum = ReadUnsignedByte(&handle->next);
     }
 
-    // No root set so lets set it
-    if (handle->root == NULL)
-    {
-        handle->root = record;
-    }
-    else
-    {
-        // Ok we already have a root so we know we have a last, lets append the last record's next pointer to point to us.
-        handle->last->next = record;
-    }
-    handle->last = record;
+    // Add the record to the handle
+    MagicOMFAddRecord(handle, record);
 }
 
 void TranslatorSkipRecord(struct MagicOMFHandle* handle)
@@ -89,11 +68,10 @@ void TranslatorReadTHEADR(struct MagicOMFHandle* handle)
         error(INVALID_THEADR_PROVIDED, handle);
         return;
     }
-
-    struct THEADR* contents = malloc(sizeof (struct THEADR));
-    record->contents = contents;
-    contents->string_length = ReadUnsignedByte(&handle->next);
-    contents->name_string = ReadStringAddTerminator(&handle->next, contents->string_length);
+    
+    int name_size = ReadUnsignedByte(&handle->next);
+    char* name_str = ReadStringAddTerminator(&handle->next, name_size);
+    record->contents = BuildTHEADR_DefinedSize(name_str, name_size);
     EndRecord(record, handle);
 
 }

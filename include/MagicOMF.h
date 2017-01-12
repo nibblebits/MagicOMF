@@ -17,11 +17,17 @@ extern "C" {
 #include "record.h"
     
 struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimplemented_records);
+struct MagicOMFHandle* MagicOMFCreateHandle();
+void MagicOMFAddRecord(struct MagicOMFHandle* handle, struct RECORD* record);
+void MagicOMFAddTHEADR(struct MagicOMFHandle* handle, char* name);
+void MagicOMFCloseHandle(struct MagicOMFHandle* handle);
 char* MagicOMFGetLNAMESNameByIndex(struct MagicOMFHandle* handle, uint8 index);
 struct SEGDEF* MagicOMFGetSEGDEFByIndex(struct MagicOMFHandle* handle, uint8 index);
 struct LEDATA_16* MagicOMFGetLEDATABySegmentIndex(struct MagicOMFHandle* handle, uint8 index);
 struct EXTDEF* MagicOMFGetEXTDEFByIndex(struct MagicOMFHandle* handle, uint8 index);
 const char* MagicOMFErrorMessage(MAGIC_OMF_ERROR_CODE error_id);
+
+
 #ifdef __cplusplus
 }
 #endif

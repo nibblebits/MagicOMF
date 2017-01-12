@@ -3,18 +3,15 @@
 #include "translate.h"
 #include "IO.h"
 #include "error.h"
+#include "builder.h"
 
 struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimplemented_records)
 {
     char* end = buf + size;
-    struct MagicOMFHandle* handle = (struct MagicOMFHandle*) malloc(sizeof (struct MagicOMFHandle));
+    struct MagicOMFHandle* handle = MagicOMFCreateHandle();
     handle->buf = buf;
     handle->next = buf;
-    handle->root = NULL;
-    handle->last = NULL;
     handle->skip_unimplemented_records = skip_unimplemented_records;
-    handle->has_error = false;
-    handle->last_error_code = -1;
 
     /* OMF Files always expect either a THEADR or an LHEADR to begin with. 
      so we need to peak ahead and check its one of these*/
@@ -88,6 +85,56 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimp
     TranslatorFinalize(handle);
 
     return handle;
+}
+
+struct MagicOMFHandle* MagicOMFCreateHandle()
+{
+    // Setup a basic handle
+    struct MagicOMFHandle* handle = (struct MagicOMFHandle*) malloc(sizeof (struct MagicOMFHandle));
+    handle->buf = NULL;
+    handle->next = NULL;
+    handle->root = NULL;
+    handle->last = NULL;
+    handle->skip_unimplemented_records = false;
+    handle->has_error = false;
+    handle->last_error_code = -1;
+    
+    return handle;
+}
+
+void MagicOMFAddRecord(struct MagicOMFHandle* handle, struct RECORD* record)
+{
+    // No root set so lets set it
+    if (handle->root == NULL)
+    {
+        handle->root = record;
+    }
+    else
+    {
+        // Ok we already have a root so we know we have a last, lets append the last record's next pointer to point to us.
+        handle->last->next = record;
+    }
+    handle->last = record;
+}
+
+void MagicOMFAddTHEADR(struct MagicOMFHandle* handle, char* name)
+{
+    struct RECORD* record;
+    struct THEADR* theadr = BuildTHEADR(name);
+    uint16 record_len = theadr->string_length +1; // +1 for checksum
+    record = BuildRecord(handle, THEADR_ID, record_len, 0);
+    record->contents = theadr;
+    MagicOMFAddRecord(handle, record);
+}
+void MagicOMFCloseHandle(struct MagicOMFHandle* handle)
+{
+    // TO BE IMPLEMENTED
+    struct RECORD* current = handle->root;
+    while (current != NULL)
+    {
+
+        current = current->next;
+    }
 }
 
 char* MagicOMFGetLNAMESNameByIndex(struct MagicOMFHandle* handle, uint8 index)
