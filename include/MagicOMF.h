@@ -18,8 +18,11 @@ extern "C" {
     
 struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimplemented_records);
 struct MagicOMFHandle* MagicOMFCreateHandle();
+void MagicOMFSetupBuffer(struct MagicOMFHandle* handle, uint32 size, char* buf);
 void MagicOMFAddRecord(struct MagicOMFHandle* handle, struct RECORD* record);
-void MagicOMFAddTHEADR(struct MagicOMFHandle* handle, char* name);
+void MagicOMFAddTHEADR(struct MagicOMFHandle* handle, const char* name);
+int MagicOMFCalculateBufferSize(struct MagicOMFHandle* handle);
+void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle);
 void MagicOMFCloseHandle(struct MagicOMFHandle* handle);
 char* MagicOMFGetLNAMESNameByIndex(struct MagicOMFHandle* handle, uint8 index);
 struct SEGDEF* MagicOMFGetSEGDEFByIndex(struct MagicOMFHandle* handle, uint8 index);

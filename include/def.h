@@ -127,15 +127,17 @@ enum
 {
     EXTDEF_TYPE_INDEX_NO_TYPDEF
 };
+
 struct MagicOMFHandle
 {
     char* buf;
+    int buf_size;
+    
     char* next;
     struct RECORD* root;
     struct RECORD* last;
 
     bool skip_unimplemented_records;
-
     MAGIC_OMF_ERROR_CODE last_error_code;
     bool has_error;
     int record_type;

@@ -75,7 +75,7 @@ char* ReadDataUntilEnd(char** ptr, char* end)
         buf[i] = **ptr;
         *ptr += 1;
     }
-    
+
     return buf;
 }
 
@@ -103,17 +103,36 @@ uint32 ReadUnsignedInt(char** ptr)
     return swapped;
 }
 
-int8 ReadSignedByte(char** ptr)
+void WritingToPointer(char** writing_ptr)
 {
-
+    ptr = writing_ptr;
 }
 
-int16 ReadSignedWord(char** ptr)
+void WriteUnsignedByte(uint8 value)
 {
-
+    **ptr = value;
+    *ptr += 1;
 }
 
-int32 ReadSignedInt(char** ptr)
+void WriteUnsignedWord(uint16 value)
 {
+    **ptr = value;
+    *ptr += 1;
+    **ptr = value >> 8;
+    *ptr += 1;
+}
 
+void WriteUnsignedInt(uint16 value)
+{
+    // Not yet supported.
+}
+
+void WriteStringNoTerminator(char* string, uint16 size)
+{
+    int i;
+    for (i = 0; i < size; i++)
+    {
+        **ptr = string[i];
+        *ptr += 1;
+    }
 }

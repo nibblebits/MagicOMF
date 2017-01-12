@@ -41,6 +41,8 @@ struct RECORD
     char* end_of_record;
     struct RECORD* next;
     struct RECORD* prev;
+    
+    struct MagicOMFHandle* handle;
 };
 
 struct THEADR

@@ -44,10 +44,13 @@ uint8 ReadUnsignedByte(char** ptr);
 uint16 ReadUnsignedWord(char** ptr);
 uint32 ReadUnsignedInt(char** ptr);
 
-int8 ReadSignedByte(char** ptr);
-int16 ReadSignedWord(char** ptr);
-int32 ReadSignedInt(char** ptr);
+void WritingToPointer(char** writing_ptr);
+void WriteUnsignedByte(uint8 value);
+void WriteUnsignedWord( uint16 value);
+void WriteUnsignedInt(uint16 value);
+void WriteStringNoTerminator(char* string, uint16 size);
 
+char** ptr;
 #ifdef __cplusplus
 }
 #endif

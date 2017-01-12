@@ -1,17 +1,18 @@
 #include <stdlib.h>
 #include "MagicOMF.h"
 #include "translate.h"
+#include "generator.h"
 #include "IO.h"
 #include "error.h"
 #include "builder.h"
 
 struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimplemented_records)
 {
-    char* end = buf + size;
     struct MagicOMFHandle* handle = MagicOMFCreateHandle();
-    handle->buf = buf;
-    handle->next = buf;
+    MagicOMFSetupBuffer(handle, size, buf);
     handle->skip_unimplemented_records = skip_unimplemented_records;
+
+    char* end = buf + size;
 
     /* OMF Files always expect either a THEADR or an LHEADR to begin with. 
      so we need to peak ahead and check its one of these*/
@@ -98,8 +99,15 @@ struct MagicOMFHandle* MagicOMFCreateHandle()
     handle->skip_unimplemented_records = false;
     handle->has_error = false;
     handle->last_error_code = -1;
-    
+
     return handle;
+}
+
+void MagicOMFSetupBuffer(struct MagicOMFHandle* handle, uint32 size, char* buf)
+{
+    handle->buf_size = size;
+    handle->buf = buf;
+    handle->next = buf;
 }
 
 void MagicOMFAddRecord(struct MagicOMFHandle* handle, struct RECORD* record)
@@ -117,15 +125,64 @@ void MagicOMFAddRecord(struct MagicOMFHandle* handle, struct RECORD* record)
     handle->last = record;
 }
 
-void MagicOMFAddTHEADR(struct MagicOMFHandle* handle, char* name)
+void MagicOMFAddTHEADR(struct MagicOMFHandle* handle, const char* name)
 {
     struct RECORD* record;
-    struct THEADR* theadr = BuildTHEADR(name);
-    uint16 record_len = theadr->string_length +1; // +1 for checksum
+    struct THEADR* theadr = BuildTHEADR((char*) name);
+    uint16 record_len = theadr->string_length + 1; // +1 for checksum
     record = BuildRecord(handle, THEADR_ID, record_len, 0);
     record->contents = theadr;
     MagicOMFAddRecord(handle, record);
 }
+
+int MagicOMFCalculateBufferSize(struct MagicOMFHandle* handle)
+{
+    /* We need to calculate the buffer size for all given records. 
+     * the algorithm for this is (record size field + 3) */
+
+    int size = 0;
+    struct RECORD* current = handle->root;
+    while (current != NULL)
+    {
+        size += current->length + 3;
+        current = current->next;
+    }
+
+    return size;
+}
+
+void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle)
+{
+    if (handle->buf != NULL)
+    {
+        // Buffer is currently present so lets free the memory as we will soon do another malloc
+        free(handle->buf);
+    }
+    
+    uint32 buf_size = MagicOMFCalculateBufferSize(handle);
+    // Allocate the new memory for the buffer    
+    char* buf = (char*) malloc(buf_size);
+
+    // Setup the new buffer
+    MagicOMFSetupBuffer(handle, buf_size, buf);
+
+    // Generate the records into the buffer.
+    struct RECORD* current = handle->root;
+    while (current != NULL)
+    {
+        switch (current->type)
+        {
+        case THEADR_ID:
+            GeneratorWriteTHEADR(&handle->next, current);
+            break;
+        default:
+            error(INVALID_RECORD_TYPE, handle);
+        }
+        current = current->next;
+    }
+
+}
+
 void MagicOMFCloseHandle(struct MagicOMFHandle* handle)
 {
     // TO BE IMPLEMENTED

@@ -50,7 +50,7 @@ struct RECORD* BuildRecord(struct MagicOMFHandle* handle, uint8 record_type, uin
     record->has_checksum = true;
     record->contents = NULL;
     record->checksum = checksum;
-
+    record->handle = handle;
     return record;
 }
 
