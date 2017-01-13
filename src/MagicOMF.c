@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "MagicOMF.h"
 #include "translate.h"
 #include "generator.h"
@@ -129,9 +130,19 @@ void MagicOMFAddTHEADR(struct MagicOMFHandle* handle, const char* name)
 {
     struct RECORD* record;
     struct THEADR* theadr = BuildTHEADR((char*) name);
-    uint16 record_len = theadr->string_length + 1; // +1 for checksum
+    uint16 record_len = theadr->string_length + 2; // +2 for string length and for checksum
     record = BuildRecord(handle, THEADR_ID, record_len, 0);
     record->contents = theadr;
+    MagicOMFAddRecord(handle, record);
+}
+
+void MagicOMFAddCOMENT(struct MagicOMFHandle* handle, COMMENT_TYPE type, uint8 _class, const char* str)
+{
+    struct RECORD* record;
+    struct COMENT* coment = BuildCOMENT(type, _class, (char*) str);
+    uint16 record_len = strlen(str) + 3; // +3 for comment type, comment class and checksum
+    record = BuildRecord(handle, COMENT_ID, record_len, 0);
+    record->contents = coment;
     MagicOMFAddRecord(handle, record);
 }
 
@@ -174,6 +185,9 @@ void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle)
         {
         case THEADR_ID:
             GeneratorWriteTHEADR(&handle->next, current);
+            break;
+        case COMENT_ID:
+            GeneratorWriteCOMENT(&handle->next, current);
             break;
         default:
             error(INVALID_RECORD_TYPE, handle);

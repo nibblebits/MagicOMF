@@ -46,9 +46,10 @@ uint32 ReadUnsignedInt(char** ptr);
 
 void WritingToPointer(char** writing_ptr);
 void WriteUnsignedByte(uint8 value);
-void WriteUnsignedWord( uint16 value);
+void WriteUnsignedWord(uint16 value);
 void WriteUnsignedInt(uint16 value);
 void WriteStringNoTerminator(char* string, uint16 size);
+void WriteData(char* data, uint16 size);
 
 char** ptr;
 #ifdef __cplusplus

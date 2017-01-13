@@ -125,6 +125,14 @@ enum
 
 enum
 {
+    COMENT_NO_LIST = 0x40,
+    COMENT_NO_PURGE = 0x80
+};
+
+typedef unsigned char COMMENT_TYPE;
+
+enum
+{
     EXTDEF_TYPE_INDEX_NO_TYPDEF
 };
 
@@ -132,7 +140,7 @@ struct MagicOMFHandle
 {
     char* buf;
     int buf_size;
-    
+
     char* next;
     struct RECORD* root;
     struct RECORD* last;

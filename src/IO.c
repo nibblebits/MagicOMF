@@ -136,3 +136,12 @@ void WriteStringNoTerminator(char* string, uint16 size)
         *ptr += 1;
     }
 }
+
+void WriteData(char* data, uint16 size)
+{
+    for (uint8 i = 0; i < size; i++)
+    {
+        **ptr = data[i];
+        *ptr += 1;
+    }
+}

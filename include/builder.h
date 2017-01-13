@@ -37,6 +37,8 @@ struct RECORD* BuildRecord(struct MagicOMFHandle* handle, uint8 record_type, uin
 struct THEADR* BuildTHEADR(char* name);
 struct THEADR* BuildTHEADR_DefinedSize(char* name, int size);
 
+struct COMENT* BuildCOMENT(COMMENT_TYPE type, uint8 _class, char* str);
+
 #ifdef __cplusplus
 }
 #endif

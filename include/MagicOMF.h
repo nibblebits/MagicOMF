@@ -21,6 +21,7 @@ struct MagicOMFHandle* MagicOMFCreateHandle();
 void MagicOMFSetupBuffer(struct MagicOMFHandle* handle, uint32 size, char* buf);
 void MagicOMFAddRecord(struct MagicOMFHandle* handle, struct RECORD* record);
 void MagicOMFAddTHEADR(struct MagicOMFHandle* handle, const char* name);
+void MagicOMFAddCOMENT(struct MagicOMFHandle* handle, COMMENT_TYPE type, uint8 _class, const char* str);
 int MagicOMFCalculateBufferSize(struct MagicOMFHandle* handle);
 void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle);
 void MagicOMFCloseHandle(struct MagicOMFHandle* handle);

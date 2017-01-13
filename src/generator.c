@@ -25,6 +25,16 @@
 #include "generator.h"
 #include "record.h"
 
+void GeneratorWriteRecordHeader(char** ptr, struct RECORD* record)
+{
+    // Setup where we will write to
+    WritingToPointer(ptr);
+    // Write the opcode
+    WriteUnsignedByte(record->type);
+    // Write the record length
+    WriteUnsignedWord(record->length);
+}
+
 void GeneratorWriteTHEADR(char** ptr, struct RECORD* record)
 {
     if (record->type != THEADR_ID)
@@ -32,17 +42,35 @@ void GeneratorWriteTHEADR(char** ptr, struct RECORD* record)
         error(INVALID_THEADR_PROVIDED, record->handle);
         return;
     }
-    
+
     struct THEADR* theadr = (struct THEADR*) record->contents;
-    // Setup where we will write to
-    WritingToPointer(ptr);
-    
-    // Write the opcode
-    WriteUnsignedByte(THEADR_ID);
-    // Write the record length
-    WriteUnsignedWord(record->length);
+    // Write the record header
+    GeneratorWriteRecordHeader(ptr, record);
     // Write the string size
     WriteUnsignedByte(theadr->string_length);
-    // Now finally write the string
+    // Now write the string
     WriteStringNoTerminator(theadr->name_string, theadr->string_length);
+
+    // Now the checksum
+    WriteUnsignedByte(0);
+}
+
+void GeneratorWriteCOMENT(char** ptr, struct RECORD* record)
+{
+    if (record->type != COMENT_ID)
+    {
+        error(INVALID_COMENT_PROVIDED, record->handle);
+        return;
+    }
+
+    // Write the record header
+    GeneratorWriteRecordHeader(ptr, record);
+
+    struct COMENT* coment = (struct COMENT*) record->contents;
+    WriteUnsignedByte(coment->c_type);
+    WriteUnsignedByte(coment->c_class);
+    WriteData(coment->c_string, record->length-3);
+
+    // Now the checksum
+    WriteUnsignedByte(0);
 }

@@ -66,3 +66,23 @@ struct THEADR* BuildTHEADR_DefinedSize(char* name, int size)
     contents->name_string = name;
     return contents;
 }
+
+struct COMENT* BuildCOMENT(COMMENT_TYPE type, uint8 _class, char* str)
+{
+    struct COMENT* contents = malloc(sizeof (struct COMENT));
+    contents->c_type = type;
+    contents->c_class = _class;
+    contents->c_string = str;
+    contents->no_list = type & 0x40;
+    contents->no_purge = type & 0x80;
+    if (contents->c_class == COMENT_CLASS_LINK_PASS_SEPARATOR)
+    {
+        contents->is_link_pass_seperator = true;
+    }
+    else
+    {
+        contents->is_link_pass_seperator = false;
+    }
+    
+    return contents;
+}

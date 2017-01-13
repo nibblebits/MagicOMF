@@ -29,14 +29,16 @@
 extern "C"
 {
 #endif
-    
+
 #include "def.h"
 #include "types.h"
 #include "error.h"
 #include "record.h"
 #include "IO.h"
-    
+
+void GeneratorWriteRecordHeader(char** ptr, struct RECORD* record);
 void GeneratorWriteTHEADR(char** ptr, struct RECORD* record);
+void GeneratorWriteCOMENT(char** ptr, struct RECORD* record);
 
 #ifdef __cplusplus
 }
