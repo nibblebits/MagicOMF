@@ -87,7 +87,7 @@ struct Attributes
     uint8 P;
 };
 
-struct SEGDEF
+struct SEGDEF_16
 {
     struct Attributes attributes;
     uint16 seg_len;
@@ -124,7 +124,7 @@ struct LEDATA_16
     char* data_bytes;
 
     // Extras, not related to the binary
-    struct SEGDEF* segdef_record;
+    struct SEGDEF_16* SEGDEF_16_record;
 };
 
 // Not yet implemented.

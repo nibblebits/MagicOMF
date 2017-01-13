@@ -39,6 +39,7 @@ extern "C"
 void GeneratorWriteRecordHeader(char** ptr, struct RECORD* record);
 void GeneratorWriteTHEADR(char** ptr, struct RECORD* record);
 void GeneratorWriteCOMENT(char** ptr, struct RECORD* record);
+void GeneratorWriteLNAMES(char** ptr, struct RECORD* record);
 
 #ifdef __cplusplus
 }

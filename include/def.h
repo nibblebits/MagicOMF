@@ -38,7 +38,7 @@ enum
     LHEADR_ID = 0x82,
     COMENT_ID = 0x88,
     LNAMES_ID = 0x96,
-    SEGDEF_ID = 0x98,
+    SEGDEF_16_ID = 0x98,
     PUBDEF_16_ID = 0x90,
     LEDATA_16_ID = 0xa0,
     FIXUPP_16_ID = 0x9c,

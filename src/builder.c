@@ -86,3 +86,12 @@ struct COMENT* BuildCOMENT(COMMENT_TYPE type, uint8 _class, char* str)
     
     return contents;
 }
+
+struct LNAMES* BuildLNAMES(char* name)
+{
+    struct LNAMES* contents = malloc(sizeof (struct LNAMES));
+    contents->s_len = strlen(name);
+    contents->n_string = name;
+    contents->next = NULL;
+    return contents;
+}

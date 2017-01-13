@@ -48,7 +48,7 @@ void EndRecord(struct RECORD* record, struct MagicOMFHandle* handle)
     }
 
     // Add the record to the handle
-    MagicOMFAddRecord(handle, record);
+    MagicOMFAddRecord(record);
 }
 
 void TranslatorSkipRecord(struct MagicOMFHandle* handle)
@@ -186,16 +186,16 @@ void TranslatorReadLNAMES(struct MagicOMFHandle* handle)
 
 /* 32 bit is not currently supported, translator will read from lowest possible
  * possibility. */
-void TranslatorReadSEGDEF(struct MagicOMFHandle* handle)
+void TranslatorReadSEGDEF16(struct MagicOMFHandle* handle)
 {
     struct RECORD* record = StartRecord(handle);
-    if (record->type != SEGDEF_ID)
+    if (record->type != SEGDEF_16_ID)
     {
-        error(INVALID_SEGDEF_PROVIDED, handle);
+        error(INVALID_SEGDEF_16_PROVIDED, handle);
         return;
     }
 
-    struct SEGDEF* contents = malloc(sizeof (struct SEGDEF));
+    struct SEGDEF_16* contents = malloc(sizeof (struct SEGDEF_16));
     record->contents = contents;
     uint8 ACBP = ReadUnsignedByte(&handle->next);
     uint8 A = ACBP >> 5;
@@ -209,20 +209,24 @@ void TranslatorReadSEGDEF(struct MagicOMFHandle* handle)
     contents->attributes.ACBP = ACBP;
     contents->seg_len = ReadUnsignedWord(&handle->next);
 
-    // When B = 0 then the segment length must also be zero.
-    if (B == 0)
+    // When B = 1 then the segment length must also be zero.
+    if (B == 1)
     {
         if (!contents->seg_len != 0)
         {
-            error(IMPROPERLY_FORMATTED_SEGDEF_PROVIDED, handle);
+            error(IMPROPERLY_FORMATTED_SEGDEF_16_PROVIDED, handle);
             return;
         }
+        
+        // Seg length is 64KB 
+        contents->seg_len = 0xffff;
     }
+    
     contents->seg_name_index = ReadUnsignedByte(&handle->next);
     contents->class_name_index = ReadUnsignedByte(&handle->next);
     contents->overlay_name_index = ReadUnsignedByte(&handle->next);
 
-    // Lets set the LNAME string that this SEGDEF is using just for ease of access
+    // Lets set the LNAME string that this SEGDEF_16 is using just for ease of access
     contents->class_name_str = MagicOMFGetLNAMESNameByIndex(handle, contents->seg_name_index);
     if (contents->class_name_str == NULL)
     {
@@ -311,7 +315,7 @@ void TranslatorReadLEDATA16(struct MagicOMFHandle* handle)
     }
 
     contents->data_bytes = ReadDataUntilEnd(&handle->next, record->end_of_record);
-    contents->segdef_record = MagicOMFGetSEGDEFByIndex(handle, contents->seg_index);
+    contents->SEGDEF_16_record = MagicOMFGetSEGDEF_16ByIndex(handle, contents->seg_index);
 
     record->contents = contents;
     EndRecord(record, handle);

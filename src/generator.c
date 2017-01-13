@@ -74,3 +74,27 @@ void GeneratorWriteCOMENT(char** ptr, struct RECORD* record)
     // Now the checksum
     WriteUnsignedByte(0);
 }
+
+void GeneratorWriteLNAMES(char** ptr, struct RECORD* record)
+{
+    if (record->type != LNAMES_ID)
+    {
+        error(INVALID_LNAMES_PROVIDED, record->handle);
+        return;
+    }
+    
+    // Write the record header
+    GeneratorWriteRecordHeader(ptr, record);
+    
+    struct LNAMES* lnames = (struct LNAMES*) record->contents;
+    struct LNAMES* current = lnames;
+    while(current != NULL)
+    {
+        WriteUnsignedByte(current->s_len);
+        WriteData(current->n_string, current->s_len);
+        current = current->next;
+    }
+    
+    // Write the checksum
+    WriteUnsignedByte(0);
+}

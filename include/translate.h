@@ -42,7 +42,7 @@ void TranslatorReadCOMENT_Translator(struct RECORD* record, struct MagicOMFHandl
 void TranslatorReadCOMENT_LinkPassSeparator(struct RECORD* record, struct MagicOMFHandle* handle);
 void TranslatorReadCOMENT(struct MagicOMFHandle* handle);
 void TranslatorReadLNAMES(struct MagicOMFHandle* handle);
-void TranslatorReadSEGDEF(struct MagicOMFHandle* handle);
+void TranslatorReadSEGDEF16(struct MagicOMFHandle* handle);
 void TranslatorReadPUBDEF16(struct MagicOMFHandle* handle);
 void TranslatorReadLEDATA16(struct MagicOMFHandle* handle);
 void TranslatorReadFIXUPP16(struct MagicOMFHandle* handle);
