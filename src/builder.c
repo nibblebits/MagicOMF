@@ -24,7 +24,10 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include "error.h"
+#include "def.h"
 #include "builder.h"
+#include "MagicOMF.h"
 
 struct RECORD* BuildRecord(struct MagicOMFHandle* handle, uint8 record_type, uint16 record_length, uint8 checksum)
 {
@@ -83,7 +86,7 @@ struct COMENT* BuildCOMENT(COMMENT_TYPE type, uint8 _class, char* str)
     {
         contents->is_link_pass_seperator = false;
     }
-    
+
     return contents;
 }
 
@@ -94,4 +97,21 @@ struct LNAMES* BuildLNAMES(char* name)
     contents->n_string = name;
     contents->next = NULL;
     return contents;
+}
+
+struct SEGDEF_16* BuildSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct Attributes attributes, uint16 size)
+{
+    struct SEGDEF_16* segdef_16 = malloc(sizeof (struct SEGDEF_16));
+    segdef_16->attributes = attributes;
+    segdef_16->seg_len = size;
+    segdef_16->class_name_index = MagicOMFGetLNAMESIndex(handle, name);
+    if (segdef_16->class_name_index == -1)
+    {
+        error(LNAMES_NOT_FOUND, handle);
+    }
+    segdef_16->class_name_str = MagicOMFGetLNAMESNameByIndex(handle, segdef_16->class_name_index);
+    segdef_16->overlay_name_index = segdef_16->class_name_index;
+    segdef_16->seg_name_index = segdef_16->class_name_index;
+    return segdef_16;
+
 }

@@ -36,9 +36,9 @@ extern "C"
 struct RECORD* BuildRecord(struct MagicOMFHandle* handle, uint8 record_type, uint16 record_length, uint8 checksum);
 struct THEADR* BuildTHEADR(char* name);
 struct THEADR* BuildTHEADR_DefinedSize(char* name, int size);
-
 struct COMENT* BuildCOMENT(COMMENT_TYPE type, uint8 _class, char* str);
 struct LNAMES* BuildLNAMES(char* name);
+struct SEGDEF_16* BuildSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct Attributes attributes, uint16 size);
 
 #ifdef __cplusplus
 }

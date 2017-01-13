@@ -206,7 +206,6 @@ void TranslatorReadSEGDEF16(struct MagicOMFHandle* handle)
     contents->attributes.C = C;
     contents->attributes.B = B;
     contents->attributes.P = P;
-    contents->attributes.ACBP = ACBP;
     contents->seg_len = ReadUnsignedWord(&handle->next);
 
     // When B = 1 then the segment length must also be zero.
@@ -315,7 +314,7 @@ void TranslatorReadLEDATA16(struct MagicOMFHandle* handle)
     }
 
     contents->data_bytes = ReadDataUntilEnd(&handle->next, record->end_of_record);
-    contents->SEGDEF_16_record = MagicOMFGetSEGDEF_16ByIndex(handle, contents->seg_index);
+    contents->SEGDEF_16_record = MagicOMFGetSEGDEF16ByIndex(handle, contents->seg_index);
 
     record->contents = contents;
     EndRecord(record, handle);

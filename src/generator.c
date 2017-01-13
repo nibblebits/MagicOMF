@@ -69,7 +69,7 @@ void GeneratorWriteCOMENT(char** ptr, struct RECORD* record)
     struct COMENT* coment = (struct COMENT*) record->contents;
     WriteUnsignedByte(coment->c_type);
     WriteUnsignedByte(coment->c_class);
-    WriteData(coment->c_string, record->length-3);
+    WriteData(coment->c_string, record->length - 3);
 
     // Now the checksum
     WriteUnsignedByte(0);
@@ -82,19 +82,62 @@ void GeneratorWriteLNAMES(char** ptr, struct RECORD* record)
         error(INVALID_LNAMES_PROVIDED, record->handle);
         return;
     }
-    
+
     // Write the record header
     GeneratorWriteRecordHeader(ptr, record);
-    
+
     struct LNAMES* lnames = (struct LNAMES*) record->contents;
     struct LNAMES* current = lnames;
-    while(current != NULL)
+    while (current != NULL)
     {
         WriteUnsignedByte(current->s_len);
         WriteData(current->n_string, current->s_len);
         current = current->next;
     }
-    
+
     // Write the checksum
     WriteUnsignedByte(0);
+}
+
+void GeneratorWriteSEGDEF16(char** ptr, struct RECORD* record)
+{
+    if (record->type != SEGDEF_16_ID)
+    {
+        error(INVALID_SEGDEF_16_PROVIDED, record->handle);
+        return;
+    }
+
+    // Write the record header
+    GeneratorWriteRecordHeader(ptr, record);
+
+    struct SEGDEF_16* segdef_16 = (struct SEGDEF_16*) record->contents;
+    struct Attributes attributes = segdef_16->attributes;
+    // Lets create the ACBP
+    uint8 ACBP = (attributes.A << 5) | (attributes.C << 2) | (attributes.B << 1) | (attributes.P);
+    // Write the ACBP
+    WriteUnsignedByte(ACBP);
+    if (attributes.A == SEG_ATTR_ALIGNMENT_ABS_SEG)
+    {
+        // Alignment is an absolute segment so we are expecting a frame number and an offset
+        WriteUnsignedWord(attributes.frame_number);
+        WriteUnsignedByte(attributes.offset);
+    }
+
+    if (attributes.B == 1)
+    {
+        WriteUnsignedWord(0);
+    }
+    else
+    {
+        WriteUnsignedWord(segdef_16->seg_len);
+    }
+    
+    WriteUnsignedByte(segdef_16->seg_name_index);
+    WriteUnsignedByte(segdef_16->class_name_index);
+    WriteUnsignedByte(segdef_16->overlay_name_index);
+    
+    // Finally write the checksum
+    WriteUnsignedByte(0);
+
+
 }

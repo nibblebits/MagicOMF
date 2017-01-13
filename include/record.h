@@ -80,11 +80,13 @@ struct LNAMES
 
 struct Attributes
 {
-    uint8 ACBP;
     uint8 A;
     uint8 C;
     uint8 B;
     uint8 P;
+    
+    uint16 frame_number;
+    uint8 offset;
 };
 
 struct SEGDEF_16

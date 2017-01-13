@@ -197,14 +197,29 @@ void MagicOMFFinishLNAMES(struct RECORD* record)
     // Calculate the size of this LNAMES record as we now need to set it
     int size = 1; // 1 for Checksum
     struct LNAMES* current = (struct LNAMES*) record->contents;
-    while(current != NULL)
+    while (current != NULL)
     {
         size += (current->s_len + 1); // +1 for the string length byte
         current = current->next;
     }
     record->length = size;
-    
+
     // Finally lets add the record
+    MagicOMFAddRecord(record);
+}
+
+void MagicOMFAddSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct Attributes attributes, uint16 size)
+{
+    struct RECORD* record;
+    struct SEGDEF_16* segdef_16 = BuildSEGDEF16(handle, name, attributes, size);
+    int record_len = 7;
+    if (attributes.A == SEG_ATTR_ALIGNMENT_ABS_SEG)
+    {
+        // A == absolute segment so the frame number and offset are present
+        record_len += 3;
+    }
+    record = BuildRecord(handle, SEGDEF_16_ID, record_len, 0);
+    record->contents = segdef_16;
     MagicOMFAddRecord(record);
 }
 
@@ -254,6 +269,9 @@ void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle)
         case LNAMES_ID:
             GeneratorWriteLNAMES(&handle->next, current);
             break;
+        case SEGDEF_16_ID:
+            GeneratorWriteSEGDEF16(&handle->next, current);
+            break;
         default:
             error(INVALID_RECORD_TYPE, handle);
         }
@@ -298,7 +316,7 @@ char* MagicOMFGetLNAMESNameByIndex(struct MagicOMFHandle* handle, uint8 index)
     return NULL;
 }
 
-struct SEGDEF_16* MagicOMFGetSEGDEF_16ByIndex(struct MagicOMFHandle* handle, uint8 index)
+struct SEGDEF_16* MagicOMFGetSEGDEF16ByIndex(struct MagicOMFHandle* handle, uint8 index)
 {
     struct RECORD* record = handle->root;
     int c_index = 1;
@@ -361,6 +379,32 @@ struct EXTDEF* MagicOMFGetEXTDEFByIndex(struct MagicOMFHandle* handle, uint8 ind
 
     return NULL;
 }
+
+int MagicOMFGetLNAMESIndex(struct MagicOMFHandle* handle, const char* name)
+{
+    struct RECORD* record = handle->root;
+    int c_index = 1;
+    while (record != NULL)
+    {
+        if (record->type == LNAMES_ID)
+        {
+            struct LNAMES* lnames_record = (struct LNAMES*) (record->contents);
+            while (lnames_record != NULL)
+            {
+                if (strcmp(name, lnames_record->n_string) == 0)
+                {
+                    return c_index;
+                }
+                c_index++;
+                lnames_record = lnames_record->next;
+            }
+        }
+        record = record->next;
+    }
+
+    return -1;
+}
+
 
 const char* MagicOMFErrorMessage(MAGIC_OMF_ERROR_CODE error_id)
 {
