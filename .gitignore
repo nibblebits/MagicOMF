@@ -5,3 +5,4 @@ nbproject
 *.so
 *.exe
 *.stackdump
+*.private
