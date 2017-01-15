@@ -135,8 +135,6 @@ enum
     COMENT_NO_PURGE = 0x80
 };
 
-typedef unsigned char COMMENT_TYPE;
-
 enum
 {
     EXTDEF_TYPE_INDEX_NO_TYPDEF

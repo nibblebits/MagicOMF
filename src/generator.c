@@ -52,7 +52,7 @@ void GeneratorWriteTHEADR(char** ptr, struct RECORD* record)
     WriteStringNoTerminator(theadr->name_string, theadr->string_length);
 
     // Now the checksum
-    WriteUnsignedByte(0);
+    WriteUnsignedByte(record->checksum);
 }
 
 void GeneratorWriteCOMENT(char** ptr, struct RECORD* record)
@@ -72,7 +72,7 @@ void GeneratorWriteCOMENT(char** ptr, struct RECORD* record)
     WriteData(coment->c_string, record->length - 3);
 
     // Now the checksum
-    WriteUnsignedByte(0);
+    WriteUnsignedByte(record->checksum);
 }
 
 void GeneratorWriteLNAMES(char** ptr, struct RECORD* record)
@@ -96,7 +96,7 @@ void GeneratorWriteLNAMES(char** ptr, struct RECORD* record)
     }
 
     // Write the checksum
-    WriteUnsignedByte(0);
+    WriteUnsignedByte(record->checksum);
 }
 
 void GeneratorWriteSEGDEF16(char** ptr, struct RECORD* record)
@@ -131,13 +131,34 @@ void GeneratorWriteSEGDEF16(char** ptr, struct RECORD* record)
     {
         WriteUnsignedWord(segdef_16->seg_len);
     }
-    
+
     WriteUnsignedByte(segdef_16->seg_name_index);
     WriteUnsignedByte(segdef_16->class_name_index);
     WriteUnsignedByte(segdef_16->overlay_name_index);
-    
+
     // Finally write the checksum
-    WriteUnsignedByte(0);
+    WriteUnsignedByte(record->checksum);
+}
 
+void GeneratorWriteLEDATA16(char** ptr, struct RECORD* record)
+{
+    if (record->type != LEDATA_16_ID)
+    {
+        error(INVALID_LEDATA_16_PROVIDED, record->handle);
+        return;
+    }
 
+    struct LEDATA_16* ledata_16 = (struct LEDATA_16*) record->contents;
+    
+    // Write the record header
+    GeneratorWriteRecordHeader(ptr, record);
+    
+    WriteUnsignedByte(ledata_16->seg_index);
+    WriteUnsignedWord(ledata_16->data_offset);
+    
+    // Write the data bytes to the stream
+    WriteData(ledata_16->data_bytes, ledata_16->data_bytes_size);
+    
+    // Finally lets write the checksum
+    WriteUnsignedByte(record->checksum);
 }

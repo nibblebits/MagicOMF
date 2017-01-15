@@ -25,7 +25,7 @@
 #ifndef BUILDER_H
 #define BUILDER_H
 
-#include "def.h"
+#include "mdef.h"
 #include "record.h"
 
 #ifdef __cplusplus
@@ -39,7 +39,7 @@ struct THEADR* BuildTHEADR_DefinedSize(char* name, int size);
 struct COMENT* BuildCOMENT(COMMENT_TYPE type, uint8 _class, char* str);
 struct LNAMES* BuildLNAMES(char* name);
 struct SEGDEF_16* BuildSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct Attributes attributes, uint16 size);
-
+struct LEDATA_16* BuildLEDATA16(struct MagicOMFHandle* handle, const char* seg_name, uint16 data_offset, int data_size, char* data);
 #ifdef __cplusplus
 }
 #endif

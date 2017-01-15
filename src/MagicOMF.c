@@ -223,6 +223,16 @@ void MagicOMFAddSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct
     MagicOMFAddRecord(record);
 }
 
+void MagicOMFAddLEDATA16(struct MagicOMFHandle* handle, const char* seg_name, uint16 data_offset, int data_size, char* data)
+{
+    struct RECORD* record;
+    struct LEDATA_16* ledata_16 = BuildLEDATA16(handle, seg_name, data_offset, data_size, data);
+    uint16 record_len = 4 + data_size; // +4 for segment index, enumerated data offset and checksum
+    record = BuildRecord(handle, LEDATA_16_ID, record_len, 0);
+    record->contents = ledata_16;
+    MagicOMFAddRecord(record);
+}
+
 int MagicOMFCalculateBufferSize(struct MagicOMFHandle* handle)
 {
     /* We need to calculate the buffer size for all given records. 
@@ -271,6 +281,9 @@ void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle)
             break;
         case SEGDEF_16_ID:
             GeneratorWriteSEGDEF16(&handle->next, current);
+            break;
+        case LEDATA_16_ID:
+            GeneratorWriteLEDATA16(&handle->next, current);
             break;
         default:
             error(INVALID_RECORD_TYPE, handle);
@@ -405,6 +418,27 @@ int MagicOMFGetLNAMESIndex(struct MagicOMFHandle* handle, const char* name)
     return -1;
 }
 
+int MagicOMFGetSEGDEFIndex(struct MagicOMFHandle* handle, const char* name)
+{
+    struct RECORD* record = handle->root;
+    int c_index = 1;
+    while (record != NULL)
+    {
+        if (record->type == SEGDEF_16_ID)
+        {
+            struct SEGDEF_16* segdef_16 = (struct SEGDEF_16*) record->contents;
+            int segname_index = segdef_16->seg_name_index;
+            if (strcmp(MagicOMFGetLNAMESNameByIndex(handle, segname_index), name) == 0)
+            {
+                return segname_index;
+            }
+            c_index++;
+        }
+        record = record->next;
+    }
+
+    return -1;
+}
 
 const char* MagicOMFErrorMessage(MAGIC_OMF_ERROR_CODE error_id)
 {

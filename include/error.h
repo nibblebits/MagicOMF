@@ -29,7 +29,7 @@
 #define EXPORT __declspec(dllexport)
 
 #include "types.h"
-#include "def.h"
+#include "mdef.h"
 #ifdef __cplusplus
 extern "C"
 {

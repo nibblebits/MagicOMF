@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "error.h"
-#include "def.h"
+#include "mdef.h"
 #include "builder.h"
 #include "MagicOMF.h"
 
@@ -113,5 +113,15 @@ struct SEGDEF_16* BuildSEGDEF16(struct MagicOMFHandle* handle, const char* name,
     segdef_16->overlay_name_index = segdef_16->class_name_index;
     segdef_16->seg_name_index = segdef_16->class_name_index;
     return segdef_16;
-
 }
+
+struct LEDATA_16* BuildLEDATA16(struct MagicOMFHandle* handle, const char* seg_name, uint16 data_offset, int data_size, char* data)
+{
+    uint8 seg_index = MagicOMFGetSEGDEFIndex(handle, seg_name);
+    struct LEDATA_16* ledata_16 = malloc(sizeof (struct LEDATA_16));
+    ledata_16->seg_index = seg_index;
+    ledata_16->data_offset = data_offset;
+    ledata_16->data_bytes_size = data_size;
+    ledata_16->data_bytes = data;
+    return ledata_16;
+};

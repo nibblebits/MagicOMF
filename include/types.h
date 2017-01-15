@@ -45,6 +45,7 @@ typedef signed short int16;
 typedef signed int int32;
 
 typedef uint8 MAGIC_OMF_ERROR_CODE;
+typedef unsigned char COMMENT_TYPE;
 
 
 #endif /* TYPES_H */

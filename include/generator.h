@@ -30,7 +30,7 @@ extern "C"
 {
 #endif
 
-#include "def.h"
+#include "mdef.h"
 #include "types.h"
 #include "error.h"
 #include "record.h"
@@ -41,6 +41,8 @@ void GeneratorWriteTHEADR(char** ptr, struct RECORD* record);
 void GeneratorWriteCOMENT(char** ptr, struct RECORD* record);
 void GeneratorWriteLNAMES(char** ptr, struct RECORD* record);
 void GeneratorWriteSEGDEF16(char** ptr, struct RECORD* record);
+void GeneratorWriteLEDATA16(char** ptr, struct RECORD* record);
+
 #ifdef __cplusplus
 }
 #endif

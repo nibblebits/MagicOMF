@@ -12,7 +12,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "def.h"
+    
+#include "mdef.h"
 #include "types.h"
 #include "record.h"
     
@@ -26,6 +27,7 @@ struct RECORD* MagicOMFNewLNAMESRecord(struct MagicOMFHandle* handle);
 void MagicOMFAddLNAME(struct RECORD* record, const char* name);
 void MagicOMFFinishLNAMES(struct RECORD* record);
 void MagicOMFAddSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct Attributes attributes, uint16 size);
+void MagicOMFAddLEDATA16(struct MagicOMFHandle* handle, const char* seg_name, uint16 data_offset, int data_size, char* data);
 int MagicOMFCalculateBufferSize(struct MagicOMFHandle* handle);
 void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle);
 void MagicOMFCloseHandle(struct MagicOMFHandle* handle);
@@ -34,6 +36,7 @@ struct SEGDEF_16* MagicOMFGetSEGDEF16ByIndex(struct MagicOMFHandle* handle, uint
 struct LEDATA_16* MagicOMFGetLEDATABySegmentIndex(struct MagicOMFHandle* handle, uint8 index);
 struct EXTDEF* MagicOMFGetEXTDEFByIndex(struct MagicOMFHandle* handle, uint8 index);
 int MagicOMFGetLNAMESIndex(struct MagicOMFHandle* handle, const char* name);
+int MagicOMFGetSEGDEFIndex(struct MagicOMFHandle* handle, const char* name);
 const char* MagicOMFErrorMessage(MAGIC_OMF_ERROR_CODE error_id);
 
 
