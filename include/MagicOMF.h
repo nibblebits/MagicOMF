@@ -31,6 +31,7 @@ void MagicOMFAddLEDATA16(struct MagicOMFHandle* handle, const char* seg_name, ui
 struct RECORD* MagicOMFNewFIXUP16Record(struct MagicOMFHandle* handle);
 void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type);
 void MagicOMFFinishFIXUP16(struct RECORD* record);
+void MagicOMFAddMODEND16(struct MagicOMFHandle* handle);
 int MagicOMFCalculateBufferSize(struct MagicOMFHandle* handle);
 void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle);
 void MagicOMFCloseHandle(struct MagicOMFHandle* handle);

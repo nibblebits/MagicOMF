@@ -153,7 +153,14 @@ struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Fixup_Internal(struct M
     subrecord->fix_data = 0x54;
     
     return subrecord;
-    
-    
+   
+}
 
+struct MODEND_16* BuildMODEND16(struct MagicOMFHandle* handle)
+{
+    // Very limited functionality for MODEND at the moment.
+    struct MODEND_16* modend_16 = (struct MODEND_16*) malloc(sizeof(struct MODEND_16));
+    modend_16->has_start_address = false;
+    modend_16->is_main = true;
+    return modend_16;
 }

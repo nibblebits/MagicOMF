@@ -185,7 +185,7 @@ void GeneratorWriteFIXUPP16(char** ptr, struct RECORD* record)
         // Write the locat
         WriteUnsignedByte(locat >> 8);
         WriteUnsignedByte(locat);
-        
+
         // Write the fix data ( spec states conditional but not how )
         WriteUnsignedByte(subrecord->fix_data);
 
@@ -202,9 +202,27 @@ void GeneratorWriteFIXUPP16(char** ptr, struct RECORD* record)
             // P is not set which means we have a target displacement
             WriteUnsignedWord(subrecord->target_displacement);
         }
-        
+
     }
-    
+
     // Finally write the checksum
+    WriteUnsignedByte(record->checksum);
+}
+
+void GeneratorWriteMODEND16(char** ptr, struct RECORD* record)
+{
+    if (record->type != MODEND_16_ID)
+    {
+        error(INVALID_MODEND_16_PROVIDED, record->handle);
+        return;
+    }
+
+    // Write the record header
+    GeneratorWriteRecordHeader(ptr, record);
+    
+    // Write value of zero for module type
+    WriteUnsignedByte(0);
+    
+    // Write the checksum
     WriteUnsignedByte(record->checksum);
 }

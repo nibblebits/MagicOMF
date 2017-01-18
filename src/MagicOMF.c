@@ -252,7 +252,7 @@ void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const ch
 
     // lets create our new sub record and descriptor
     struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_Fixup_Internal(record->handle, referring_to_segment_name, offset, location_type);
-    struct FIXUP_16_SUBRECORD_DESCRIPTOR* new_descriptor = BuildFIXUP16_RecordDescriptor(FIXUPP_FIXUP_SUBRECORD, (const char*)subrecord);
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* new_descriptor = BuildFIXUP16_RecordDescriptor(FIXUPP_FIXUP_SUBRECORD, (const char*) subrecord);
 
 
     // We need to find out where we are going to put this new FIXUP 
@@ -309,9 +309,19 @@ void MagicOMFFinishFIXUP16(struct RECORD* record)
         }
         record_descriptor = record_descriptor->next_subrecord_descriptor;
     }
-    
+
     // Ok we have the total record size so lets set it and add the record
     record->length = record_size;
+    MagicOMFAddRecord(record);
+}
+
+void MagicOMFAddMODEND16(struct MagicOMFHandle* handle)
+{
+    // Only very basic support is currently legal, we do not support start addresses
+    int record_length = 2;
+    struct RECORD* record = BuildRecord(handle, MODEND_16_ID, record_length, 0);
+    struct MODEND_16* modend_16 = BuildMODEND16(handle);
+    record->contents = modend_16;
     MagicOMFAddRecord(record);
 }
 
@@ -370,6 +380,8 @@ void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle)
         case FIXUPP_16_ID:
             GeneratorWriteFIXUPP16(&handle->next, current);
             break;
+        case MODEND_16_ID:
+            GeneratorWriteMODEND16(&handle->next, current);
         default:
             error(INVALID_RECORD_TYPE, handle);
         }
