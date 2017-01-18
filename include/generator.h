@@ -42,7 +42,7 @@ void GeneratorWriteCOMENT(char** ptr, struct RECORD* record);
 void GeneratorWriteLNAMES(char** ptr, struct RECORD* record);
 void GeneratorWriteSEGDEF16(char** ptr, struct RECORD* record);
 void GeneratorWriteLEDATA16(char** ptr, struct RECORD* record);
-
+void GeneratorWriteFIXUPP16(char** ptr, struct RECORD* record);
 #ifdef __cplusplus
 }
 #endif

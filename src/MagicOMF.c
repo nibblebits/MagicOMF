@@ -233,6 +233,88 @@ void MagicOMFAddLEDATA16(struct MagicOMFHandle* handle, const char* seg_name, ui
     MagicOMFAddRecord(record);
 }
 
+struct RECORD* MagicOMFNewFIXUP16Record(struct MagicOMFHandle* handle)
+{
+    // Impossible to know the record length at this point
+    struct RECORD* record = BuildRecord(handle, FIXUPP_16_ID, 0, 0);
+    record->contents = NULL;
+    return record;
+}
+
+void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type)
+{
+    if (record->type != FIXUPP_16_ID)
+    {
+        error(INVALID_FIXUPP_16_PROVIDED, record->handle);
+        return;
+    }
+
+
+    // lets create our new sub record and descriptor
+    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_Fixup_Internal(record->handle, referring_to_segment_name, offset, location_type);
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* new_descriptor = BuildFIXUP16_RecordDescriptor(FIXUPP_FIXUP_SUBRECORD, (const char*)subrecord);
+
+
+    // We need to find out where we are going to put this new FIXUP 
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* record_descriptor = record->contents;
+    if (record_descriptor == NULL)
+    {
+        // We will put it as the records contents as its the first of its kind
+        record->contents = new_descriptor;
+    }
+    else
+    {
+
+        // Ok its not the first so we need to find the record that was added last
+        while (1)
+        {
+            if (record_descriptor->next_subrecord_descriptor != NULL)
+            {
+                record_descriptor = record_descriptor->next_subrecord_descriptor;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        // Lets add a pointer pointing to us.
+        record_descriptor->next_subrecord_descriptor = new_descriptor;
+    }
+
+}
+
+void MagicOMFFinishFIXUP16(struct RECORD* record)
+{
+    // We must calculate the record size
+    uint16 record_size = 1; // 1 for checksum
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* record_descriptor = record->contents;
+    while (record_descriptor != NULL)
+    {
+        if (record_descriptor->subrecord_type == FIXUPP_FIXUP_SUBRECORD)
+        {
+            struct FIXUPP_16_FIXUP_SUBRECORD* fixup_sub = (struct FIXUPP_16_FIXUP_SUBRECORD*) (record_descriptor->subrecord);
+            record_size += 3; // +2 for locat + 1 for fix data ( spec states fix data is conditional but not how )
+            if (!(fixup_sub->fix_data & FIXUPP_FIXUP_SET_F))
+            {
+                // F is not set which means we have a frame datum
+                record_size += 1;
+            }
+
+            if (!(fixup_sub->fix_data & FIXUPP_FIXUP_SET_P))
+            {
+                // P is not set which means we have a target displacement
+                record_size += 3;
+            }
+        }
+        record_descriptor = record_descriptor->next_subrecord_descriptor;
+    }
+    
+    // Ok we have the total record size so lets set it and add the record
+    record->length = record_size;
+    MagicOMFAddRecord(record);
+}
+
 int MagicOMFCalculateBufferSize(struct MagicOMFHandle* handle)
 {
     /* We need to calculate the buffer size for all given records. 
@@ -284,6 +366,9 @@ void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle)
             break;
         case LEDATA_16_ID:
             GeneratorWriteLEDATA16(&handle->next, current);
+            break;
+        case FIXUPP_16_ID:
+            GeneratorWriteFIXUPP16(&handle->next, current);
             break;
         default:
             error(INVALID_RECORD_TYPE, handle);

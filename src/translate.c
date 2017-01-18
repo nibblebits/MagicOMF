@@ -40,7 +40,6 @@ struct RECORD* StartRecord(struct MagicOMFHandle* handle)
 
 void EndRecord(struct RECORD* record, struct MagicOMFHandle* handle)
 {
-
     // Do we have a checksum? if so lets read it
     if (record->has_checksum)
     {

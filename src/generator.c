@@ -149,16 +149,62 @@ void GeneratorWriteLEDATA16(char** ptr, struct RECORD* record)
     }
 
     struct LEDATA_16* ledata_16 = (struct LEDATA_16*) record->contents;
-    
+
     // Write the record header
     GeneratorWriteRecordHeader(ptr, record);
-    
+
     WriteUnsignedByte(ledata_16->seg_index);
     WriteUnsignedWord(ledata_16->data_offset);
-    
+
     // Write the data bytes to the stream
     WriteData(ledata_16->data_bytes, ledata_16->data_bytes_size);
-    
+
     // Finally lets write the checksum
+    WriteUnsignedByte(record->checksum);
+}
+
+void GeneratorWriteFIXUPP16(char** ptr, struct RECORD* record)
+{
+    if (record->type != FIXUPP_16_ID)
+    {
+        error(INVALID_FIXUPP_16_PROVIDED, record->handle);
+        return;
+    }
+
+    // Write the record header
+    GeneratorWriteRecordHeader(ptr, record);
+
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* subrecord_desc = (struct FIXUP_16_SUBRECORD_DESCRIPTOR*) record->contents;
+    if (subrecord_desc->subrecord_type == FIXUPP_FIXUP_SUBRECORD)
+    {
+        // Only fixup subrecords are currently supported and it is limited support
+
+        struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) subrecord_desc->subrecord;
+        // We must construct the locat
+        uint16 locat = (0x01 << 15) | (subrecord->mode << 14) | (subrecord->location << 10) | (subrecord->data_record_offset);
+        // Write the locat
+        WriteUnsignedByte(locat >> 8);
+        WriteUnsignedByte(locat);
+        
+        // Write the fix data ( spec states conditional but not how )
+        WriteUnsignedByte(subrecord->fix_data);
+
+        // Do we need to write a frame datum?
+        if (!(subrecord->fix_data & FIXUPP_FIXUP_SET_F))
+        {
+            // F is not set which means we have a frame datum
+            WriteUnsignedByte(subrecord->frame_datum);
+        }
+
+        // Do we have a target displacement?
+        if (!(subrecord->fix_data & FIXUPP_FIXUP_SET_P))
+        {
+            // P is not set which means we have a target displacement
+            WriteUnsignedWord(subrecord->target_displacement);
+        }
+        
+    }
+    
+    // Finally write the checksum
     WriteUnsignedByte(record->checksum);
 }

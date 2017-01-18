@@ -25,7 +25,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "error.h"
-#include "mdef.h"
 #include "builder.h"
 #include "MagicOMF.h"
 
@@ -125,3 +124,36 @@ struct LEDATA_16* BuildLEDATA16(struct MagicOMFHandle* handle, const char* seg_n
     ledata_16->data_bytes = data;
     return ledata_16;
 };
+
+struct FIXUP_16_SUBRECORD_DESCRIPTOR* BuildFIXUP16_RecordDescriptor(uint8 subrecord_type, const char* subrecord)
+{
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* subrecord_desc = (struct FIXUP_16_SUBRECORD_DESCRIPTOR*) malloc(sizeof(struct FIXUP_16_SUBRECORD_DESCRIPTOR));
+    subrecord_desc->subrecord_type = subrecord_type;
+    subrecord_desc->subrecord = subrecord;
+    subrecord_desc->next_subrecord_descriptor = NULL;
+    return subrecord_desc;
+}
+
+struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Fixup_Internal(struct MagicOMFHandle* handle, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type)
+{
+    // We need to get the index of the segment we are referring to
+    int ref_seg = MagicOMFGetSEGDEFIndex(handle, referring_to_segment_name);
+    
+    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) malloc(sizeof(struct FIXUPP_16_FIXUP_SUBRECORD));
+    // Frame datum should hold the index of the segment we are referring to.
+    subrecord->frame_datum = ref_seg;
+    
+    // Mode should equal to 1 for internal references (segment relative fixups)
+    subrecord->mode = 1;
+    subrecord->location = location_type;
+    
+    subrecord->data_record_offset = offset;
+    
+    // Just a default for now, I don't know enough about it to do it properly.
+    subrecord->fix_data = 0x54;
+    
+    return subrecord;
+    
+    
+
+}
