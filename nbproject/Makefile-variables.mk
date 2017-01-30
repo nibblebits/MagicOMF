@@ -8,9 +8,9 @@ CND_BUILDDIR=build
 CND_DISTDIR=dist
 # Debug configuration
 CND_PLATFORM_Debug=Cygwin-Windows
-CND_ARTIFACT_DIR_Debug=dist/Debug/Cygwin-Windows
-CND_ARTIFACT_NAME_Debug=libMagicOMF.dll
-CND_ARTIFACT_PATH_Debug=dist/Debug/Cygwin-Windows/libMagicOMF.dll
+CND_ARTIFACT_DIR_Debug=../../bin
+CND_ARTIFACT_NAME_Debug=MagicOMF.dll
+CND_ARTIFACT_PATH_Debug=../../bin/MagicOMF.dll
 CND_PACKAGE_DIR_Debug=dist/Debug/Cygwin-Windows/package
 CND_PACKAGE_NAME_Debug=libMagicOMF.dll.tar
 CND_PACKAGE_PATH_Debug=dist/Debug/Cygwin-Windows/package/libMagicOMF.dll.tar

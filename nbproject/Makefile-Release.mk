@@ -37,7 +37,9 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/src/IO.o \
 	${OBJECTDIR}/src/MagicOMF.o \
+	${OBJECTDIR}/src/builder.o \
 	${OBJECTDIR}/src/error.o \
+	${OBJECTDIR}/src/generator.o \
 	${OBJECTDIR}/src/translate.o
 
 
@@ -75,10 +77,20 @@ ${OBJECTDIR}/src/MagicOMF.o: src/MagicOMF.c
 	${RM} "$@.d"
 	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MagicOMF.o src/MagicOMF.c
 
+${OBJECTDIR}/src/builder.o: src/builder.c
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/builder.o src/builder.c
+
 ${OBJECTDIR}/src/error.o: src/error.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/error.o src/error.c
+
+${OBJECTDIR}/src/generator.o: src/generator.c
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/generator.o src/generator.c
 
 ${OBJECTDIR}/src/translate.o: src/translate.c
 	${MKDIR} -p ${OBJECTDIR}/src
