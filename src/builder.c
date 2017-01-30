@@ -98,6 +98,15 @@ struct LNAMES* BuildLNAMES(char* name)
     return contents;
 }
 
+struct EXTDEF* BuildEXTDEF(char* name, int type_index)
+{
+    struct EXTDEF* contents = malloc(sizeof(struct EXTDEF));
+    contents->s_len = strlen(name);
+    contents->name_str = name;
+    contents->type_index = type_index;
+    contents->next = NULL;
+    return contents;
+}
 struct SEGDEF_16* BuildSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct Attributes attributes, uint16 size)
 {
     struct SEGDEF_16* segdef_16 = malloc(sizeof (struct SEGDEF_16));

@@ -26,6 +26,9 @@ void MagicOMFAddCOMENT(struct MagicOMFHandle* handle, COMMENT_TYPE type, uint8 _
 struct RECORD* MagicOMFNewLNAMESRecord(struct MagicOMFHandle* handle);
 void MagicOMFAddLNAME(struct RECORD* record, const char* name);
 void MagicOMFFinishLNAMES(struct RECORD* record);
+struct RECORD* MagicOMFNewEXTDEFRecord(struct MagicOMFHandle* handle);
+void MagicOMFAddEXTDEF(struct RECORD* record, const char* name, int type_index);
+void MagicOMFFinishEXTDEF(struct RECORD* record);
 void MagicOMFAddSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct Attributes attributes, uint16 size);
 void MagicOMFAddLEDATA16(struct MagicOMFHandle* handle, const char* seg_name, uint16 data_offset, int data_size, char* data);
 struct RECORD* MagicOMFNewFIXUP16Record(struct MagicOMFHandle* handle);

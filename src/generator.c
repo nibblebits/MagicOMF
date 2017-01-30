@@ -99,6 +99,32 @@ void GeneratorWriteLNAMES(char** ptr, struct RECORD* record)
     WriteUnsignedByte(record->checksum);
 }
 
+void GeneratorWriteEXTDEF(char** ptr, struct RECORD* record)
+{
+    if (record->type != EXTDEF_ID)
+    {
+        error(INVALID_EXTDEF_PROVIDED, record->handle);
+    }
+    
+    // Write the record header
+    GeneratorWriteRecordHeader(ptr, record);
+    
+    struct EXTDEF* current = (struct EXTDEF*) record->contents;
+    while(current != NULL)
+    {
+        // Write the string length
+        WriteUnsignedByte(current->s_len);
+        // Write the string
+        WriteData(current->name_str, current->s_len);
+        // Write the type index
+        WriteUnsignedByte(current->type_index);
+        // Get the next EXTDEF
+        current = current->next;
+    }
+    
+    WriteUnsignedByte(record->checksum);
+}
+
 void GeneratorWriteSEGDEF16(char** ptr, struct RECORD* record)
 {
     if (record->type != SEGDEF_16_ID)

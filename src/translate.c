@@ -425,7 +425,7 @@ void TranslatorReadEXTDEF(struct MagicOMFHandle* handle)
     struct RECORD* record = StartRecord(handle);
     if (record->type != EXTDEF_ID)
     {
-        error(INVALID_EXTDEF_ID_PROVIDED, handle);
+        error(INVALID_EXTDEF_PROVIDED, handle);
     }
 
     struct EXTDEF* extdef_root_contents = malloc(sizeof (struct EXTDEF));

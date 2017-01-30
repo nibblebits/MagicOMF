@@ -157,7 +157,7 @@ struct RECORD* MagicOMFNewLNAMESRecord(struct MagicOMFHandle* handle)
 
 void MagicOMFAddLNAME(struct RECORD* record, const char* name)
 {
-    // Ok lets check htat this is an LNAMES record
+    // Ok lets check that this is an LNAMES record
     if (!record->type == LNAMES_ID)
     {
         error(INVALID_LNAMES_PROVIDED, record->handle);
@@ -200,6 +200,67 @@ void MagicOMFFinishLNAMES(struct RECORD* record)
     while (current != NULL)
     {
         size += (current->s_len + 1); // +1 for the string length byte
+        current = current->next;
+    }
+    record->length = size;
+
+    // Finally lets add the record
+    MagicOMFAddRecord(record);
+}
+
+struct RECORD* MagicOMFNewEXTDEFRecord(struct MagicOMFHandle* handle)
+{
+    // Impossible to know the record length at this point
+    struct RECORD* record = BuildRecord(handle, EXTDEF_ID, 0, 0);
+    record->contents = NULL;
+    return record;
+}
+
+void MagicOMFAddEXTDEF(struct RECORD* record, const char* name, int type_index)
+{
+    // Ok lets check that this is an EXTDEF record
+    if (!record->type == EXTDEF_ID)
+    {
+        error(INVALID_EXTDEF_PROVIDED, record->handle);
+        return;
+    }
+
+    struct EXTDEF* extdef = (struct EXTDEF*) record->contents;
+    if (extdef == NULL)
+    {
+        // This is the first EXTDEF we have
+        extdef = BuildEXTDEF((char*) name, type_index);
+        record->contents = extdef;
+    }
+    else
+    {
+        // Ok this is not the first EXTDEF record contents so lets find where we need to put the new record contents
+        struct EXTDEF* current = extdef;
+        while (1)
+        {
+            if (current->next != NULL)
+            {
+                current = current->next;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        // variable "current" contains the EXTDEF we need to add the new EXTDEF to
+        current->next = BuildEXTDEF((char*) name, type_index);
+    }
+}
+
+void MagicOMFFinishEXTDEF(struct RECORD* record)
+{
+    // Calculate the size of this EXTDEF record as we now need to set it
+    int size = 1; // 1 for Checksum
+    struct EXTDEF* current = (struct EXTDEF*) record->contents;
+    while (current != NULL)
+    {
+        size += (current->s_len + 2); // +2 for the string length byte + the type index
         current = current->next;
     }
     record->length = size;
@@ -370,6 +431,9 @@ void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle)
             break;
         case LNAMES_ID:
             GeneratorWriteLNAMES(&handle->next, current);
+            break;
+        case EXTDEF_ID:
+            GeneratorWriteEXTDEF(&handle->next, current);
             break;
         case SEGDEF_16_ID:
             GeneratorWriteSEGDEF16(&handle->next, current);

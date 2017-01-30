@@ -170,7 +170,7 @@ struct MODEND_16
 struct EXTDEF
 {
     uint8 s_len;
-    const char* name_str;
+    char* name_str;
     uint8 type_index;
     struct EXTDEF* next;
 };
