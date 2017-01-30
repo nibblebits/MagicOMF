@@ -33,6 +33,7 @@ void MagicOMFAddSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct
 void MagicOMFAddLEDATA16(struct MagicOMFHandle* handle, const char* seg_name, uint16 data_offset, int data_size, char* data);
 struct RECORD* MagicOMFNewFIXUP16Record(struct MagicOMFHandle* handle);
 void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type);
+void MagicOMFAddFIXUP16_SubRecord_Fixup_External(struct RECORD* record, const char* extern_ref_name, uint16 offset, LOCATION_TYPE location_type);
 void MagicOMFFinishFIXUP16(struct RECORD* record);
 void MagicOMFAddMODEND16(struct MagicOMFHandle* handle);
 int MagicOMFCalculateBufferSize(struct MagicOMFHandle* handle);
@@ -44,6 +45,7 @@ struct LEDATA_16* MagicOMFGetLEDATABySegmentIndex(struct MagicOMFHandle* handle,
 struct EXTDEF* MagicOMFGetEXTDEFByIndex(struct MagicOMFHandle* handle, uint8 index);
 int MagicOMFGetLNAMESIndex(struct MagicOMFHandle* handle, const char* name);
 int MagicOMFGetSEGDEFIndex(struct MagicOMFHandle* handle, const char* name);
+int MagicOMFGetEXTDEFIndex(struct MagicOMFHandle* handle, const char* name);
 const char* MagicOMFErrorMessage(MAGIC_OMF_ERROR_CODE error_id);
 
 

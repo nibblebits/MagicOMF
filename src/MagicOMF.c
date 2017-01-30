@@ -302,7 +302,7 @@ struct RECORD* MagicOMFNewFIXUP16Record(struct MagicOMFHandle* handle)
     return record;
 }
 
-void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type)
+void MagicOMFAddFIXUP16_SubRecord_Fixup(struct RECORD* record, struct FIXUPP_16_FIXUP_SUBRECORD* subrecord)
 {
     if (record->type != FIXUPP_16_ID)
     {
@@ -312,7 +312,6 @@ void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const ch
 
 
     // lets create our new sub record and descriptor
-    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_Fixup_Internal(record->handle, referring_to_segment_name, offset, location_type);
     struct FIXUP_16_SUBRECORD_DESCRIPTOR* new_descriptor = BuildFIXUP16_RecordDescriptor(FIXUPP_FIXUP_SUBRECORD, (const char*) subrecord);
 
 
@@ -342,7 +341,34 @@ void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const ch
         // Lets add a pointer pointing to us.
         record_descriptor->next_subrecord_descriptor = new_descriptor;
     }
+}
 
+void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type)
+{
+    if (record->type != FIXUPP_16_ID)
+    {
+        error(INVALID_FIXUPP_16_PROVIDED, record->handle);
+        return;
+    }
+
+
+    // lets create our new sub record and descriptor
+    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_Fixup_Internal(record->handle, referring_to_segment_name, offset, location_type);
+    MagicOMFAddFIXUP16_SubRecord_Fixup(record, subrecord);
+
+}
+
+void MagicOMFAddFIXUP16_SubRecord_Fixup_External(struct RECORD* record, const char* extern_ref_name, uint16 offset, LOCATION_TYPE location_type)
+{
+    if (record->type != FIXUPP_16_ID)
+    {
+        error(INVALID_FIXUPP_16_PROVIDED, record->handle);
+        return;
+    }
+    
+    // Lets create our new sub record and descriptor
+    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_Fixup_External(record->handle, extern_ref_name, offset, location_type);
+    MagicOMFAddFIXUP16_SubRecord_Fixup(record, subrecord);
 }
 
 void MagicOMFFinishFIXUP16(struct RECORD* record)
@@ -594,6 +620,31 @@ int MagicOMFGetSEGDEFIndex(struct MagicOMFHandle* handle, const char* name)
                 return segname_index;
             }
             c_index++;
+        }
+        record = record->next;
+    }
+
+    return -1;
+}
+
+int MagicOMFGetEXTDEFIndex(struct MagicOMFHandle* handle, const char* name)
+{
+    struct RECORD* record = handle->root;
+    int c_index = 1;
+    while (record != NULL)
+    {
+        if (record->type == EXTDEF_ID)
+        {
+            struct EXTDEF* extdef_record = (struct EXTDEF*) (record->contents);
+            while (extdef_record != NULL)
+            {
+                if (strcmp(name, extdef_record->name_str) == 0)
+                {
+                    return c_index;
+                }
+                c_index++;
+                extdef_record = extdef_record->next;
+            }
         }
         record = record->next;
     }

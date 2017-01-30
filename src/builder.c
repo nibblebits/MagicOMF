@@ -100,13 +100,14 @@ struct LNAMES* BuildLNAMES(char* name)
 
 struct EXTDEF* BuildEXTDEF(char* name, int type_index)
 {
-    struct EXTDEF* contents = malloc(sizeof(struct EXTDEF));
+    struct EXTDEF* contents = malloc(sizeof (struct EXTDEF));
     contents->s_len = strlen(name);
     contents->name_str = name;
     contents->type_index = type_index;
     contents->next = NULL;
     return contents;
 }
+
 struct SEGDEF_16* BuildSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct Attributes attributes, uint16 size)
 {
     struct SEGDEF_16* segdef_16 = malloc(sizeof (struct SEGDEF_16));
@@ -136,39 +137,60 @@ struct LEDATA_16* BuildLEDATA16(struct MagicOMFHandle* handle, const char* seg_n
 
 struct FIXUP_16_SUBRECORD_DESCRIPTOR* BuildFIXUP16_RecordDescriptor(uint8 subrecord_type, const char* subrecord)
 {
-    struct FIXUP_16_SUBRECORD_DESCRIPTOR* subrecord_desc = (struct FIXUP_16_SUBRECORD_DESCRIPTOR*) malloc(sizeof(struct FIXUP_16_SUBRECORD_DESCRIPTOR));
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* subrecord_desc = (struct FIXUP_16_SUBRECORD_DESCRIPTOR*) malloc(sizeof (struct FIXUP_16_SUBRECORD_DESCRIPTOR));
     subrecord_desc->subrecord_type = subrecord_type;
     subrecord_desc->subrecord = subrecord;
     subrecord_desc->next_subrecord_descriptor = NULL;
     return subrecord_desc;
 }
 
+// I think frame datum should actually be target datum in this case, check this out another time.
 struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Fixup_Internal(struct MagicOMFHandle* handle, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type)
 {
     // We need to get the index of the segment we are referring to
     int ref_seg = MagicOMFGetSEGDEFIndex(handle, referring_to_segment_name);
-    
-    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) malloc(sizeof(struct FIXUPP_16_FIXUP_SUBRECORD));
+
+    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) malloc(sizeof (struct FIXUPP_16_FIXUP_SUBRECORD));
     // Frame datum should hold the index of the segment we are referring to.
     subrecord->frame_datum = ref_seg;
-    
+
     // Mode should equal to 1 for internal references (segment relative fixups)
     subrecord->mode = 1;
     subrecord->location = location_type;
-    
+
     subrecord->data_record_offset = offset;
-    
+
     // Just a default for now, I don't know enough about it to do it properly.
     subrecord->fix_data = 0x54;
-    
+
     return subrecord;
-   
+
+}
+
+// I think frame datum should actually be target datum in this case, check this out another time.
+struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Fixup_External(struct MagicOMFHandle* handle, const char* extern_ref_name, uint16 offset, LOCATION_TYPE location_type)
+{
+    int ref_extern = MagicOMFGetEXTDEFIndex(handle, extern_ref_name);
+    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) malloc(sizeof (struct FIXUPP_16_FIXUP_SUBRECORD));
+    // Frame datum should hold the index of the segment we are referring to.
+    subrecord->frame_datum = ref_extern;
+
+    // Mode should equal to 0 for external references (self relative fixups)
+    subrecord->mode = 0;
+    subrecord->location = location_type;
+
+    subrecord->data_record_offset = offset;
+
+    // Just a default for now, I don't know enough about it to do it properly.
+    subrecord->fix_data = 0x56;
+
+    return subrecord;
 }
 
 struct MODEND_16* BuildMODEND16(struct MagicOMFHandle* handle)
 {
     // Very limited functionality for MODEND at the moment.
-    struct MODEND_16* modend_16 = (struct MODEND_16*) malloc(sizeof(struct MODEND_16));
+    struct MODEND_16* modend_16 = (struct MODEND_16*) malloc(sizeof (struct MODEND_16));
     modend_16->has_start_address = false;
     modend_16->is_main = true;
     return modend_16;
