@@ -105,12 +105,12 @@ void GeneratorWriteEXTDEF(char** ptr, struct RECORD* record)
     {
         error(INVALID_EXTDEF_PROVIDED, record->handle);
     }
-    
+
     // Write the record header
     GeneratorWriteRecordHeader(ptr, record);
-    
+
     struct EXTDEF* current = (struct EXTDEF*) record->contents;
-    while(current != NULL)
+    while (current != NULL)
     {
         // Write the string length
         WriteUnsignedByte(current->s_len);
@@ -121,7 +121,7 @@ void GeneratorWriteEXTDEF(char** ptr, struct RECORD* record)
         // Get the next EXTDEF
         current = current->next;
     }
-    
+
     WriteUnsignedByte(record->checksum);
 }
 
@@ -235,6 +235,36 @@ void GeneratorWriteFIXUPP16(char** ptr, struct RECORD* record)
     WriteUnsignedByte(record->checksum);
 }
 
+void GeneratorWritePUBDEF16(char** ptr, struct RECORD* record)
+{
+    struct PUBDEF_16* contents = (struct PUBDEF_16*) record->contents;
+    // Write the record header
+    GeneratorWriteRecordHeader(ptr, record);
+    // Now comes record information
+    WriteUnsignedByte(contents->bg_index);
+    WriteUnsignedByte(contents->bs_index);
+    // Do we need to write a base frame?
+    if (contents->bs_index == 0)
+    {
+        // Yes lets just write a NULL word
+        WriteUnsignedWord(0);
+    }
+    
+    // Now comes pubdef 16 internals
+    struct PUBDEF_16_IDEN* iden = contents->iden;
+    while(iden != NULL)
+    {
+        WriteUnsignedByte(iden->str_len);
+        WriteData(iden->name_str, iden->str_len);
+        WriteUnsignedWord(iden->p_offset);
+        WriteUnsignedByte(iden->type_index);
+        iden = iden->next;
+    }
+    
+    // Finally the checksum
+    WriteUnsignedByte(record->checksum);
+}
+
 void GeneratorWriteMODEND16(char** ptr, struct RECORD* record)
 {
     if (record->type != MODEND_16_ID)
@@ -245,10 +275,10 @@ void GeneratorWriteMODEND16(char** ptr, struct RECORD* record)
 
     // Write the record header
     GeneratorWriteRecordHeader(ptr, record);
-    
+
     // Write value of zero for module type
     WriteUnsignedByte(0);
-    
+
     // Write the checksum
     WriteUnsignedByte(record->checksum);
 }

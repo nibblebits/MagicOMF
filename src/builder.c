@@ -145,6 +145,7 @@ struct FIXUP_16_SUBRECORD_DESCRIPTOR* BuildFIXUP16_RecordDescriptor(uint8 subrec
 }
 
 // I think frame datum should actually be target datum in this case, check this out another time.
+
 struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Fixup_Internal(struct MagicOMFHandle* handle, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type)
 {
     // We need to get the index of the segment we are referring to
@@ -168,6 +169,7 @@ struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Fixup_Internal(struct M
 }
 
 // I think frame datum should actually be target datum in this case, check this out another time.
+
 struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Fixup_External(struct MagicOMFHandle* handle, const char* extern_ref_name, uint16 offset, LOCATION_TYPE location_type)
 {
     int ref_extern = MagicOMFGetEXTDEFIndex(handle, extern_ref_name);
@@ -194,4 +196,26 @@ struct MODEND_16* BuildMODEND16(struct MagicOMFHandle* handle)
     modend_16->has_start_address = false;
     modend_16->is_main = true;
     return modend_16;
+}
+
+struct PUBDEF_16* BuildPUBDEF16(struct MagicOMFHandle* handle, const char* seg_name)
+{
+    struct PUBDEF_16* contents = (struct PUBDEF_16*) malloc(sizeof (struct PUBDEF_16));
+    uint8 seg_index = MagicOMFGetSEGDEFIndex(handle, seg_name);
+    // We don't support groups yet
+    contents->bg_index = 0;
+    contents->bs_index = seg_index;
+    contents->iden = NULL;
+    return contents;
+}
+
+struct PUBDEF_16_IDEN* BuildPUBDEF16_IDEN(const char* pub_def_name, uint16 offset, uint8 type_index)
+{
+    struct PUBDEF_16_IDEN* pubdef_16_iden = (struct PUBDEF_16_IDEN*) malloc(sizeof (struct PUBDEF_16_IDEN));
+    pubdef_16_iden->str_len = strlen(pub_def_name);
+    pubdef_16_iden->name_str = (char*) pub_def_name;
+    pubdef_16_iden->p_offset = offset;
+    pubdef_16_iden->type_index = type_index;
+    pubdef_16_iden->next = NULL;
+    return pubdef_16_iden;
 }

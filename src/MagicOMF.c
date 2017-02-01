@@ -365,7 +365,7 @@ void MagicOMFAddFIXUP16_SubRecord_Fixup_External(struct RECORD* record, const ch
         error(INVALID_FIXUPP_16_PROVIDED, record->handle);
         return;
     }
-    
+
     // Lets create our new sub record and descriptor
     struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_Fixup_External(record->handle, extern_ref_name, offset, location_type);
     MagicOMFAddFIXUP16_SubRecord_Fixup(record, subrecord);
@@ -400,6 +400,64 @@ void MagicOMFFinishFIXUP16(struct RECORD* record)
     // Ok we have the total record size so lets set it and add the record
     record->length = record_size;
     MagicOMFAddRecord(record);
+}
+
+struct RECORD* MagicOMFNewPUBDEF16Record(struct MagicOMFHandle* handle, const char* seg_name)
+{
+    // Impossible to know the record length at this point
+    struct RECORD* record = BuildRecord(handle, PUBDEF_16_ID, 0, 0);
+    struct PUBDEF_16* contents = BuildPUBDEF16(handle, seg_name);
+    record->contents = contents;
+    return record;
+}
+
+void MagicOMFAddPUBDEF16Identifier(struct RECORD* record, const char* pub_def_name, uint16 offset, uint8 type_index)
+{
+    struct PUBDEF_16* pubdef_16 = (struct PUBDEF_16*) record->contents;
+    struct PUBDEF_16_IDEN* new_iden = BuildPUBDEF16_IDEN(pub_def_name, offset, type_index);
+    if(pubdef_16->iden == NULL)
+    {
+        pubdef_16->iden = new_iden;
+    }
+    else
+    {
+        // We need to find where to put this new identifier
+        struct PUBDEF_16_IDEN* current = pubdef_16->iden;
+        while(current->next != NULL)
+        {
+            current = current->next;
+        }
+        
+        // Last pubdef identifier is found so set its next to the new identifier created
+        current->next = new_iden;
+    }
+        
+}
+
+void MagicOMFFinishPUBDEF16(struct RECORD* record)
+{
+    struct PUBDEF_16* pubdef_16 = (struct PUBDEF_16*) record->contents;
+    // base group index + base segment index + checksum = 3
+    uint16 record_size = 3; 
+    
+    if (pubdef_16->bs_index == 0)
+    {
+        // Base segment is zero so base frame is present, 2 bytes for base frame
+        record_size += 2;
+    }
+    
+    struct PUBDEF_16_IDEN* iden = pubdef_16->iden;
+    while(iden != NULL)
+    {
+        // String length field + string length + offset + type index = 4 + string length
+        record_size += 4 + iden->str_len;
+        iden = iden->next;
+    }
+    
+    // We have the record size
+    record->length = record_size;
+    MagicOMFAddRecord(record);
+    
 }
 
 void MagicOMFAddMODEND16(struct MagicOMFHandle* handle)
@@ -472,6 +530,10 @@ void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle)
             break;
         case MODEND_16_ID:
             GeneratorWriteMODEND16(&handle->next, current);
+            break;
+        case PUBDEF_16_ID:
+            GeneratorWritePUBDEF16(&handle->next, current);
+            break;
         default:
             error(INVALID_RECORD_TYPE, handle);
         }
