@@ -135,7 +135,7 @@ struct LEDATA_16* BuildLEDATA16(struct MagicOMFHandle* handle, const char* seg_n
     return ledata_16;
 };
 
-struct FIXUP_16_SUBRECORD_DESCRIPTOR* BuildFIXUP16_RecordDescriptor(uint8 subrecord_type, const char* subrecord)
+struct FIXUP_16_SUBRECORD_DESCRIPTOR* BuildFIXUP16_RecordDescriptor(uint8 subrecord_type, const void* subrecord)
 {
     struct FIXUP_16_SUBRECORD_DESCRIPTOR* subrecord_desc = (struct FIXUP_16_SUBRECORD_DESCRIPTOR*) malloc(sizeof (struct FIXUP_16_SUBRECORD_DESCRIPTOR));
     subrecord_desc->subrecord_type = subrecord_type;

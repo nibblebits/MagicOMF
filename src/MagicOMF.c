@@ -312,11 +312,11 @@ void MagicOMFAddFIXUP16_SubRecord_Fixup(struct RECORD* record, struct FIXUPP_16_
 
 
     // lets create our new sub record and descriptor
-    struct FIXUP_16_SUBRECORD_DESCRIPTOR* new_descriptor = BuildFIXUP16_RecordDescriptor(FIXUPP_FIXUP_SUBRECORD, (const char*) subrecord);
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* new_descriptor = BuildFIXUP16_RecordDescriptor(FIXUPP_FIXUP_SUBRECORD, (const void*) subrecord);
 
 
     // We need to find out where we are going to put this new FIXUP 
-    struct FIXUP_16_SUBRECORD_DESCRIPTOR* record_descriptor = record->contents;
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* record_descriptor = (struct FIXUP_16_SUBRECORD_DESCRIPTOR*) record->contents;
     if (record_descriptor == NULL)
     {
         // We will put it as the records contents as its the first of its kind
