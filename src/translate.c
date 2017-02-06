@@ -247,6 +247,7 @@ void TranslatorReadPUBDEF16(struct MagicOMFHandle* handle)
     record->contents = contents;
     contents->bg_index = ReadUnsignedByte(&handle->next);
     contents->bs_index = ReadUnsignedByte(&handle->next);
+    contents->segdef_16_record = MagicOMFGetSEGDEF16ByIndex(handle, contents->bs_index);
     if (contents->bs_index == 0)
     {
         if (contents->bg_index == 0)

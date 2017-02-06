@@ -205,6 +205,7 @@ struct PUBDEF_16* BuildPUBDEF16(struct MagicOMFHandle* handle, const char* seg_n
     // We don't support groups yet
     contents->bg_index = 0;
     contents->bs_index = seg_index;
+    contents->segdef_16_record = MagicOMFGetSEGDEF16ByIndex(handle, seg_index);
     contents->iden = NULL;
     return contents;
 }

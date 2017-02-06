@@ -114,6 +114,7 @@ struct PUBDEF_16
 {
     uint8 bg_index;
     uint8 bs_index;
+    struct SEGDEF_16* segdef_16_record;
     struct PUBDEF_16_IDEN* iden;
 
 };

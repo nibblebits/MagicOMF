@@ -16,6 +16,7 @@ extern "C" {
 #include "mdef.h"
 #include "types.h"
 #include "record.h"
+#include "error.h"
     
 struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimplemented_records);
 struct MagicOMFHandle* MagicOMFCreateHandle();
