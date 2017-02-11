@@ -153,6 +153,10 @@ struct FIXUPP_16_FIXUP_SUBRECORD
     uint8 frame_datum;
     uint8 target_datum;
     uint16 target_displacement;
+    uint8 target_type;
+    bool has_frame_datum;
+    bool has_target_datum;
+    bool has_target_displacement;
     
     // Extras, not related to the binary
     struct LEDATA_16* target_data;

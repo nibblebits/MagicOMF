@@ -67,7 +67,7 @@ void TranslatorReadTHEADR(struct MagicOMFHandle* handle)
         error(INVALID_THEADR_PROVIDED, handle);
         return;
     }
-    
+
     int name_size = ReadUnsignedByte(&handle->next);
     char* name_str = ReadStringAddTerminator(&handle->next, name_size);
     record->contents = BuildTHEADR_DefinedSize(name_str, name_size);
@@ -215,11 +215,11 @@ void TranslatorReadSEGDEF16(struct MagicOMFHandle* handle)
             error(IMPROPERLY_FORMATTED_SEGDEF_16_PROVIDED, handle);
             return;
         }
-        
+
         // Seg length is 64KB 
         contents->seg_len = 0xffff;
     }
-    
+
     contents->seg_name_index = ReadUnsignedByte(&handle->next);
     contents->class_name_index = ReadUnsignedByte(&handle->next);
     contents->overlay_name_index = ReadUnsignedByte(&handle->next);
@@ -378,6 +378,7 @@ void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct FIXUP_16_SUBREC
     if (subrecord->location != FIXUPP_LOCATION_16_BIT_OFFSET)
     {
         error(FIXUPP_16_LOCATION_NOT_SUPPORTED, handle);
+        return;
     }
 
     uint8 fix_data = ReadUnsignedByte(&handle->next);
@@ -387,14 +388,36 @@ void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct FIXUP_16_SUBREC
     uint8 P = (fix_data >> 2) & 0x01;
     uint8 targt = (fix_data) & 0x03;
 
-    // We don't support a lot of these options at the moment.
-    if (F == 1 || T == 1 || P == 0)
+    subrecord->fix_data = fix_data;
+    
+    /* F <= 2 is a guess as spec states: The Frame Datum field is present
+and is an index field for FRAME methods F0, F1, and F2 only. But binary appears that
+     frame datum field is not present unless the frame is F0, F1 or F2.*/
+
+    subrecord->has_frame_datum = (F == 0 && frame <= 2);
+    subrecord->has_target_displacement = !(T == 0 || T == 1 && P == 1);
+
+    // We can't handle TARGET threads they are unsupported, we also only support frame: TARGET.
+    if (T != 0 || frame != 0x05)
     {
         error(FIXUPP_16_FIX_DATA_UNSUPPORTED, handle);
+        return;
     }
 
-    // Read the frame datum field
-    subrecord->frame_datum = ReadUnsignedByte(&handle->next);
+    subrecord->target_type = targt;
+
+    if (subrecord->has_frame_datum)
+    {
+        subrecord->frame_datum = ReadUnsignedByte(&handle->next);
+    }
+
+    subrecord->has_target_datum = true;
+    subrecord->target_datum = ReadUnsignedByte(&handle->next);
+
+    if (subrecord->has_target_displacement)
+    {
+        subrecord->target_displacement = ReadUnsignedWord(&handle->next);
+    }
 
     subrecord_descriptor->subrecord = subrecord;
 }
@@ -431,7 +454,7 @@ void TranslatorReadEXTDEF(struct MagicOMFHandle* handle)
 
     struct EXTDEF* extdef_root_contents = malloc(sizeof (struct EXTDEF));
     record->contents = extdef_root_contents;
-   
+
     struct EXTDEF* prev = NULL;
     struct EXTDEF* contents = extdef_root_contents;
     while (handle->next < record->end_of_record)
@@ -439,15 +462,15 @@ void TranslatorReadEXTDEF(struct MagicOMFHandle* handle)
         contents->s_len = ReadUnsignedByte(&handle->next);
         contents->name_str = ReadStringAddTerminator(&handle->next, contents->s_len);
         contents->type_index = ReadUnsignedByte(&handle->next);
-        
+
         if (prev != NULL)
         {
             prev->next = contents;
         }
-        
+
         prev = contents;
-        
-        contents = malloc(sizeof(struct EXTDEF));
+
+        contents = malloc(sizeof (struct EXTDEF));
     }
     EndRecord(record, handle);
 }
@@ -484,13 +507,13 @@ void TranslatorFinalize_FIXUPP_16(struct RECORD* record, struct MagicOMFHandle* 
                 // OMF specifies that the target data will be the previous LEDATA record
                 subrecord->target_data = prev_ledata_16;
 
-                if (subrecord->mode == FIXUPP_MODE_SELF_RELATIVE_FIXUP)
+                if (subrecord->target_type == FIXUPP_TARGET_TYPE_EXTIDX)
                 {
-                    subrecord->relating_extdef = MagicOMFGetEXTDEFByIndex(handle, subrecord->frame_datum);
+                    subrecord->relating_extdef = MagicOMFGetEXTDEFByIndex(handle, subrecord->target_datum);
                 }
                 else
                 {
-                    subrecord->relating_data = MagicOMFGetLEDATABySegmentIndex(handle, subrecord->frame_datum);
+                    subrecord->relating_data = MagicOMFGetLEDATABySegmentIndex(handle, subrecord->target_datum);
                 }
             }
             record_descriptor = record_descriptor->next_subrecord_descriptor;
