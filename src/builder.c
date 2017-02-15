@@ -146,7 +146,7 @@ struct FIXUP_16_SUBRECORD_DESCRIPTOR* BuildFIXUP16_RecordDescriptor(uint8 subrec
 
 // I think frame datum should actually be target datum in this case, check this out another time.
 
-struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Fixup_Internal(struct MagicOMFHandle* handle, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type)
+struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Segment_Fixup(struct MagicOMFHandle* handle, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type, FIXUP_MODE fixup_mode)
 {
     // We need to get the index of the segment we are referring to
     int ref_seg = MagicOMFGetSEGDEFIndex(handle, referring_to_segment_name);
@@ -155,8 +155,7 @@ struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Fixup_Internal(struct M
     // Frame datum should hold the index of the segment we are referring to.
     subrecord->frame_datum = ref_seg;
 
-    // Mode should equal to 1 for internal references (segment relative fixups)
-    subrecord->mode = 1;
+    subrecord->mode = fixup_mode;
     subrecord->location = location_type;
 
     subrecord->data_record_offset = offset;
@@ -170,15 +169,14 @@ struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Fixup_Internal(struct M
 
 // I think frame datum should actually be target datum in this case, check this out another time.
 
-struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_Fixup_External(struct MagicOMFHandle* handle, const char* extern_ref_name, uint16 offset, LOCATION_TYPE location_type)
+struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_External_Fixup(struct MagicOMFHandle* handle, const char* extern_ref_name, uint16 offset, LOCATION_TYPE location_type, FIXUP_MODE fixup_mode)
 {
     int ref_extern = MagicOMFGetEXTDEFIndex(handle, extern_ref_name);
     struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) malloc(sizeof (struct FIXUPP_16_FIXUP_SUBRECORD));
     // Frame datum should hold the index of the segment we are referring to.
     subrecord->frame_datum = ref_extern;
 
-    // Mode should equal to 0 for external references (self relative fixups)
-    subrecord->mode = 0;
+    subrecord->mode = fixup_mode;
     subrecord->location = location_type;
 
     subrecord->data_record_offset = offset;

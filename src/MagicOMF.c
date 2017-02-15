@@ -343,7 +343,7 @@ void MagicOMFAddFIXUP16_SubRecord_Fixup(struct RECORD* record, struct FIXUPP_16_
     }
 }
 
-void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type)
+void MagicOMFAddFIXUP16_SubRecord_Segment_Fixup(struct RECORD* record, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type, FIXUP_MODE fixup_mode)
 {
     if (record->type != FIXUPP_16_ID)
     {
@@ -353,12 +353,12 @@ void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const ch
 
 
     // lets create our new sub record and descriptor
-    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_Fixup_Internal(record->handle, referring_to_segment_name, offset, location_type);
+    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_Segment_Fixup(record->handle, referring_to_segment_name, offset, location_type, fixup_mode);
     MagicOMFAddFIXUP16_SubRecord_Fixup(record, subrecord);
 
 }
 
-void MagicOMFAddFIXUP16_SubRecord_Fixup_External(struct RECORD* record, const char* extern_ref_name, uint16 offset, LOCATION_TYPE location_type)
+void MagicOMFAddFIXUP16_SubRecord_External_Fixup(struct RECORD* record, const char* extern_ref_name, uint16 offset, LOCATION_TYPE location_type, FIXUP_MODE fixup_mode)
 {
     if (record->type != FIXUPP_16_ID)
     {
@@ -367,7 +367,7 @@ void MagicOMFAddFIXUP16_SubRecord_Fixup_External(struct RECORD* record, const ch
     }
 
     // Lets create our new sub record and descriptor
-    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_Fixup_External(record->handle, extern_ref_name, offset, location_type);
+    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_External_Fixup(record->handle, extern_ref_name, offset, location_type, fixup_mode);
     MagicOMFAddFIXUP16_SubRecord_Fixup(record, subrecord);
 }
 

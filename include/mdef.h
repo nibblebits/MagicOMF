@@ -153,6 +153,8 @@ enum
     EXTDEF_TYPE_INDEX_NO_TYPDEF
 };
 
+typedef unsigned int FIXUP_MODE;
+
 struct MagicOMFHandle
 {
     char* buf;

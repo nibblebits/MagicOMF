@@ -9,14 +9,14 @@
 #ifndef MAGICOMF_H
 #define MAGICOMF_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-    
 #include "mdef.h"
 #include "types.h"
 #include "record.h"
 #include "error.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
     
 struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimplemented_records);
 struct MagicOMFHandle* MagicOMFCreateHandle();
@@ -33,8 +33,8 @@ void MagicOMFFinishEXTDEF(struct RECORD* record);
 void MagicOMFAddSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct Attributes attributes, uint16 size);
 void MagicOMFAddLEDATA16(struct MagicOMFHandle* handle, const char* seg_name, uint16 data_offset, int data_size, char* data);
 struct RECORD* MagicOMFNewFIXUP16Record(struct MagicOMFHandle* handle);
-void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type);
-void MagicOMFAddFIXUP16_SubRecord_Fixup_External(struct RECORD* record, const char* extern_ref_name, uint16 offset, LOCATION_TYPE location_type);
+void MagicOMFAddFIXUP16_SubRecord_Segment_Fixup(struct RECORD* record, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type, FIXUP_MODE fixup_mode);
+void MagicOMFAddFIXUP16_SubRecord_External_Fixup(struct RECORD* record, const char* extern_ref_name, uint16 offset, LOCATION_TYPE location_type, FIXUP_MODE fixup_mode);
 void MagicOMFFinishFIXUP16(struct RECORD* record);
 struct RECORD* MagicOMFNewPUBDEF16Record(struct MagicOMFHandle* handle, const char* seg_name);
 void MagicOMFAddPUBDEF16Identifier(struct RECORD* record, const char* pub_def_name, uint16 offset, uint8 type_index);
