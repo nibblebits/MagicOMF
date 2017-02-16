@@ -56,10 +56,10 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimp
             break;
         case PUBDEF_16_ID:
             TranslatorReadPUBDEF16(handle);
-            break;
+            break;        
         case LEDATA_16_ID:
             TranslatorReadLEDATA16(handle);
-            break;
+            break;    
         case FIXUPP_16_ID:
             TranslatorReadFIXUPP16(handle);
             break;
@@ -69,6 +69,7 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimp
         case EXTDEF_ID:
             TranslatorReadEXTDEF(handle);
             break;
+      
         default:
             if (handle->skip_unimplemented_records)
             {

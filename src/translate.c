@@ -194,6 +194,7 @@ void TranslatorReadSEGDEF16(struct MagicOMFHandle* handle)
         return;
     }
 
+    unsigned char c = *record->end_of_record;
     struct SEGDEF_16* contents = malloc(sizeof (struct SEGDEF_16));
     record->contents = contents;
     uint8 ACBP = ReadUnsignedByte(&handle->next);
@@ -294,7 +295,7 @@ void TranslatorReadLEDATA16(struct MagicOMFHandle* handle)
     {
         error(INVALID_LEDATA_16_PROVIDED, handle);
     }
-
+    
     struct LEDATA_16* contents = malloc(sizeof (struct LEDATA_16));
     contents->seg_index = ReadUnsignedByte(&handle->next);
     if (contents->seg_index == 0)
@@ -312,6 +313,7 @@ void TranslatorReadLEDATA16(struct MagicOMFHandle* handle)
         // Specification prohibits the data bytes size being above 1024
         error(INVALID_LEDATA_16_PROVIDED, handle);
     }
+
 
     contents->data_bytes = ReadDataUntilEnd(&handle->next, record->end_of_record);
     contents->SEGDEF_16_record = MagicOMFGetSEGDEF16ByIndex(handle, contents->seg_index);

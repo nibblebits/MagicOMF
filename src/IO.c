@@ -23,7 +23,7 @@
  */
 
 #include <stdlib.h>
-
+#include <stdio.h>
 #include "IO.h"
 
 void ReadAndIgnoreBytes(char** ptr, char* end)
@@ -70,9 +70,9 @@ char* ReadDataUntilEnd(char** ptr, char* end)
 {
     int size = (int) (end - *ptr);
     char* buf = (char*) malloc(size);
-    for (uint8 i = 0; i < size; i++)
+    for (int i = 0; i < size; i++)
     {
-        buf[i] = **ptr;
+         buf[i] = **ptr;
         *ptr += 1;
     }
 
