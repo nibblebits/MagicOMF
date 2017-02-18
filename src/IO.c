@@ -56,7 +56,7 @@ char* ReadStringAddTerminator(char** ptr, uint8 size)
         buf[i] = **ptr;
         *ptr += 1;
     }
-    buf[size + 1] = 0;
+    buf[size] = 0;
     return buf;
 }
 
@@ -72,7 +72,7 @@ char* ReadDataUntilEnd(char** ptr, char* end)
     char* buf = (char*) malloc(size);
     for (int i = 0; i < size; i++)
     {
-         buf[i] = **ptr;
+        buf[i] = **ptr;
         *ptr += 1;
     }
 
@@ -139,7 +139,7 @@ void WriteStringNoTerminator(char* string, uint16 size)
 
 void WriteData(char* data, uint16 size)
 {
-    for (uint8 i = 0; i < size; i++)
+    for (uint16 i = 0; i < size; i++)
     {
         **ptr = data[i];
         *ptr += 1;
