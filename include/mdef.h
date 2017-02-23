@@ -16,14 +16,14 @@
  */
 
 /* 
- * File:   structs.h
+ * File:   mdef.h
  * Author: Daniel McCarthy
  *
  * Created on 06 December 2016, 15:13
  */
 
-#ifndef STRUCTS_H
-#define STRUCTS_H
+#ifndef MDEF_H
+#define MDEF_H
 
 #ifdef __cplusplus
 extern "C"
@@ -175,5 +175,5 @@ struct MagicOMFHandle
 }
 #endif
 
-#endif /* STRUCTS_H */
+#endif /* MDEF_H */
 
