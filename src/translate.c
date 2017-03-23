@@ -281,6 +281,7 @@ void TranslatorReadPUBDEF16(struct MagicOMFHandle* handle)
             // Set the previous identifier to point to us
             prev->next = iden;
         }
+        iden->next = NULL;
         prev = iden;
     }
 
