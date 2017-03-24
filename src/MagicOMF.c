@@ -14,7 +14,7 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimp
     handle->skip_unimplemented_records = skip_unimplemented_records;
 
     char* end = buf + size;
-
+    
     /* OMF Files always expect either a THEADR or an LHEADR to begin with. 
      so we need to peak ahead and check its one of these*/
     uint8 type = ReadUnsignedByteNoNext(buf);
@@ -101,6 +101,7 @@ struct MagicOMFHandle* MagicOMFCreateHandle()
     handle->skip_unimplemented_records = false;
     handle->has_error = false;
     handle->last_error_code = -1;
+    handle->last_ledata = NULL;
 
     return handle;
 }

@@ -296,7 +296,7 @@ void TranslatorReadLEDATA16(struct MagicOMFHandle* handle)
     {
         error(INVALID_LEDATA_16_PROVIDED, handle);
     }
-    
+
     struct LEDATA_16* contents = malloc(sizeof (struct LEDATA_16));
     contents->seg_index = ReadUnsignedByte(&handle->next);
     if (contents->seg_index == 0)
@@ -321,6 +321,8 @@ void TranslatorReadLEDATA16(struct MagicOMFHandle* handle)
 
     record->contents = contents;
     EndRecord(record, handle);
+
+    handle->last_ledata = contents;
 }
 
 void TranslatorReadFIXUPP16(struct MagicOMFHandle* handle)
@@ -377,6 +379,9 @@ void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct FIXUP_16_SUBREC
     subrecord->location = (locat >> 10) & 0x0f;
     subrecord->data_record_offset = (locat) & 0x3ff;
 
+    // Set the absolute offset, relative offset + absolute offset to last LEDATA record
+    subrecord->abs_data_record_offset = subrecord->data_record_offset + handle->last_ledata->data_offset;
+
     // Ok only 16 bit offsets are currently supported
     if (subrecord->location != FIXUPP_LOCATION_16_BIT_OFFSET)
     {
@@ -392,7 +397,7 @@ void TranslatorReadFIXUPP16_FIXUP_SUBRECORD(uint16 locat, struct FIXUP_16_SUBREC
     uint8 targt = (fix_data) & 0x03;
 
     subrecord->fix_data = fix_data;
-    
+
     /* F <= 2 is a guess as spec states: The Frame Datum field is present
 and is an index field for FRAME methods F0, F1, and F2 only. But binary appears that
      frame datum field is not present unless the frame is F0, F1 or F2.*/

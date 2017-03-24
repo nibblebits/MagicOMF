@@ -31,7 +31,7 @@ extern "C"
 #endif
 
 #include "types.h"
-
+#include "record.h"
 enum
 {
     THEADR_ID = 0x80,
@@ -168,6 +168,8 @@ struct MagicOMFHandle
     MAGIC_OMF_ERROR_CODE last_error_code;
     bool has_error;
     int record_type;
+    
+    struct LEDATA_16* last_ledata;
 };
 
 

@@ -147,6 +147,10 @@ struct FIXUPP_16_FIXUP_SUBRECORD
     // locat
     uint8 mode;
     uint16 location;
+    
+    // Offset relative to zero
+    uint16 abs_data_record_offset;
+    // Offset relative to current LEDATA
     uint16 data_record_offset;
 
     uint8 fix_data;
