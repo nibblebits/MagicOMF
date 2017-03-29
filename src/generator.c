@@ -206,8 +206,12 @@ void GeneratorWriteFIXUPP16(char** ptr, struct RECORD* record)
         if (subrecord_desc->subrecord_type == FIXUPP_FIXUP_SUBRECORD)
         {
             // Only fixup subrecords are currently supported and it is limited support
-
             struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) subrecord_desc->subrecord;
+            if (subrecord->data_record_offset > 1024)
+            {
+                error(FIXUPP_16_OFFSET_OUT_OF_BOUNDS, record->handle);
+                return;
+            }
             // We must construct the locat
             uint16 locat = (0x01 << 15) | (subrecord->mode << 14) | (subrecord->location << 10) | (subrecord->data_record_offset);
             // Write the locat

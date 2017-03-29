@@ -339,6 +339,7 @@ void TranslatorReadFIXUPP16(struct MagicOMFHandle* handle)
     while (handle->next < record->end_of_record)
     {
         subrecord_desc = malloc(sizeof (struct FIXUP_16_SUBRECORD_DESCRIPTOR));
+        subrecord_desc->subrecord = NULL;
         subrecord_desc->next_subrecord_descriptor = NULL;
         if (prev_subrecord_desc != NULL)
         {
@@ -363,6 +364,7 @@ void TranslatorReadFIXUPP16(struct MagicOMFHandle* handle)
         {
             // THREAD not supported
             error(FIXUPP_16_THREAD_NOT_SUPPORTED, handle);
+            return;
         }
 
         prev_subrecord_desc = subrecord_desc;

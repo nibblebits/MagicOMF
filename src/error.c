@@ -49,7 +49,8 @@ const char* error_messages[] =
     "The module type for this MODEND-16 record is not supported",
     "The record associated its self with an LNAMES record that did not exist.",
     "The OMF file does not appear to be properly formatted",
-    "The EXTDEF to process is invalid. "
+    "The EXTDEF to process is invalid.",
+    "The offset for the FIXUPP-16 record is out of bounds"
 };
 
 void error(MAGIC_OMF_ERROR_CODE error_code, struct MagicOMFHandle* handle)

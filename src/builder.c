@@ -175,7 +175,7 @@ struct FIXUPP_16_FIXUP_SUBRECORD* BuildFIXUP16_SubRecord_External_Fixup(struct M
     struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) malloc(sizeof (struct FIXUPP_16_FIXUP_SUBRECORD));
     // Frame datum should hold the index of the segment we are referring to.
     subrecord->frame_datum = ref_extern;
-
+  
     subrecord->mode = fixup_mode;
     subrecord->location = location_type;
 
