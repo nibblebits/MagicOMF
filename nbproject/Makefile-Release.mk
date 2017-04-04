@@ -82,6 +82,11 @@ ${OBJECTDIR}/src/builder.o: src/builder.c
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -DRELEASE -Iinclude  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/builder.o src/builder.c
 
+${OBJECTDIR}/src/builder.o: src/builder.c
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/builder.o src/builder.c
+
 ${OBJECTDIR}/src/error.o: src/error.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
@@ -91,6 +96,11 @@ ${OBJECTDIR}/src/generator.o: src/generator.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -DRELEASE -Iinclude  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/generator.o src/generator.c
+
+${OBJECTDIR}/src/generator.o: src/generator.c
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/generator.o src/generator.c
 
 ${OBJECTDIR}/src/translate.o: src/translate.c
 	${MKDIR} -p ${OBJECTDIR}/src
