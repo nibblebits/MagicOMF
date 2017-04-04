@@ -14,7 +14,7 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimp
     handle->skip_unimplemented_records = skip_unimplemented_records;
 
     char* end = buf + size;
-
+    
     /* OMF Files always expect either a THEADR or an LHEADR to begin with. 
      so we need to peak ahead and check its one of these*/
     uint8 type = ReadUnsignedByteNoNext(buf);
@@ -56,10 +56,10 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimp
             break;
         case PUBDEF_16_ID:
             TranslatorReadPUBDEF16(handle);
-            break;
+            break;        
         case LEDATA_16_ID:
             TranslatorReadLEDATA16(handle);
-            break;
+            break;    
         case FIXUPP_16_ID:
             TranslatorReadFIXUPP16(handle);
             break;
@@ -69,6 +69,7 @@ struct MagicOMFHandle* MagicOMFTranslate(char* buf, uint32 size, bool skip_unimp
         case EXTDEF_ID:
             TranslatorReadEXTDEF(handle);
             break;
+      
         default:
             if (handle->skip_unimplemented_records)
             {
@@ -100,6 +101,7 @@ struct MagicOMFHandle* MagicOMFCreateHandle()
     handle->skip_unimplemented_records = false;
     handle->has_error = false;
     handle->last_error_code = -1;
+    handle->last_ledata = NULL;
 
     return handle;
 }
@@ -157,7 +159,7 @@ struct RECORD* MagicOMFNewLNAMESRecord(struct MagicOMFHandle* handle)
 
 void MagicOMFAddLNAME(struct RECORD* record, const char* name)
 {
-    // Ok lets check htat this is an LNAMES record
+    // Ok lets check that this is an LNAMES record
     if (!record->type == LNAMES_ID)
     {
         error(INVALID_LNAMES_PROVIDED, record->handle);
@@ -208,6 +210,67 @@ void MagicOMFFinishLNAMES(struct RECORD* record)
     MagicOMFAddRecord(record);
 }
 
+struct RECORD* MagicOMFNewEXTDEFRecord(struct MagicOMFHandle* handle)
+{
+    // Impossible to know the record length at this point
+    struct RECORD* record = BuildRecord(handle, EXTDEF_ID, 0, 0);
+    record->contents = NULL;
+    return record;
+}
+
+void MagicOMFAddEXTDEF(struct RECORD* record, const char* name, int type_index)
+{
+    // Ok lets check that this is an EXTDEF record
+    if (!record->type == EXTDEF_ID)
+    {
+        error(INVALID_EXTDEF_PROVIDED, record->handle);
+        return;
+    }
+
+    struct EXTDEF* extdef = (struct EXTDEF*) record->contents;
+    if (extdef == NULL)
+    {
+        // This is the first EXTDEF we have
+        extdef = BuildEXTDEF((char*) name, type_index);
+        record->contents = extdef;
+    }
+    else
+    {
+        // Ok this is not the first EXTDEF record contents so lets find where we need to put the new record contents
+        struct EXTDEF* current = extdef;
+        while (1)
+        {
+            if (current->next != NULL)
+            {
+                current = current->next;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        // variable "current" contains the EXTDEF we need to add the new EXTDEF to
+        current->next = BuildEXTDEF((char*) name, type_index);
+    }
+}
+
+void MagicOMFFinishEXTDEF(struct RECORD* record)
+{
+    // Calculate the size of this EXTDEF record as we now need to set it
+    int size = 1; // 1 for Checksum
+    struct EXTDEF* current = (struct EXTDEF*) record->contents;
+    while (current != NULL)
+    {
+        size += (current->s_len + 2); // +2 for the string length byte + the type index
+        current = current->next;
+    }
+    record->length = size;
+
+    // Finally lets add the record
+    MagicOMFAddRecord(record);
+}
+
 void MagicOMFAddSEGDEF16(struct MagicOMFHandle* handle, const char* name, struct Attributes attributes, uint16 size)
 {
     struct RECORD* record;
@@ -241,7 +304,7 @@ struct RECORD* MagicOMFNewFIXUP16Record(struct MagicOMFHandle* handle)
     return record;
 }
 
-void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type)
+void MagicOMFAddFIXUP16_SubRecord_Fixup(struct RECORD* record, struct FIXUPP_16_FIXUP_SUBRECORD* subrecord)
 {
     if (record->type != FIXUPP_16_ID)
     {
@@ -251,12 +314,11 @@ void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const ch
 
 
     // lets create our new sub record and descriptor
-    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_Fixup_Internal(record->handle, referring_to_segment_name, offset, location_type);
-    struct FIXUP_16_SUBRECORD_DESCRIPTOR* new_descriptor = BuildFIXUP16_RecordDescriptor(FIXUPP_FIXUP_SUBRECORD, (const char*) subrecord);
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* new_descriptor = BuildFIXUP16_RecordDescriptor(FIXUPP_FIXUP_SUBRECORD, (const void*) subrecord);
 
 
     // We need to find out where we are going to put this new FIXUP 
-    struct FIXUP_16_SUBRECORD_DESCRIPTOR* record_descriptor = record->contents;
+    struct FIXUP_16_SUBRECORD_DESCRIPTOR* record_descriptor = (struct FIXUP_16_SUBRECORD_DESCRIPTOR*) record->contents;
     if (record_descriptor == NULL)
     {
         // We will put it as the records contents as its the first of its kind
@@ -281,7 +343,34 @@ void MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(struct RECORD* record, const ch
         // Lets add a pointer pointing to us.
         record_descriptor->next_subrecord_descriptor = new_descriptor;
     }
+}
 
+void MagicOMFAddFIXUP16_SubRecord_Segment_Fixup(struct RECORD* record, const char* referring_to_segment_name, uint16 offset, LOCATION_TYPE location_type, FIXUP_MODE fixup_mode)
+{
+    if (record->type != FIXUPP_16_ID)
+    {
+        error(INVALID_FIXUPP_16_PROVIDED, record->handle);
+        return;
+    }
+
+
+    // lets create our new sub record and descriptor
+    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_Segment_Fixup(record->handle, referring_to_segment_name, offset, location_type, fixup_mode);
+    MagicOMFAddFIXUP16_SubRecord_Fixup(record, subrecord);
+
+}
+
+void MagicOMFAddFIXUP16_SubRecord_External_Fixup(struct RECORD* record, const char* extern_ref_name, uint16 offset, LOCATION_TYPE location_type, FIXUP_MODE fixup_mode)
+{
+    if (record->type != FIXUPP_16_ID)
+    {
+        error(INVALID_FIXUPP_16_PROVIDED, record->handle);
+        return;
+    }
+
+    // Lets create our new sub record and descriptor
+    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = BuildFIXUP16_SubRecord_External_Fixup(record->handle, extern_ref_name, offset, location_type, fixup_mode);
+    MagicOMFAddFIXUP16_SubRecord_Fixup(record, subrecord);
 }
 
 void MagicOMFFinishFIXUP16(struct RECORD* record)
@@ -313,6 +402,64 @@ void MagicOMFFinishFIXUP16(struct RECORD* record)
     // Ok we have the total record size so lets set it and add the record
     record->length = record_size;
     MagicOMFAddRecord(record);
+}
+
+struct RECORD* MagicOMFNewPUBDEF16Record(struct MagicOMFHandle* handle, const char* seg_name)
+{
+    // Impossible to know the record length at this point
+    struct RECORD* record = BuildRecord(handle, PUBDEF_16_ID, 0, 0);
+    struct PUBDEF_16* contents = BuildPUBDEF16(handle, seg_name);
+    record->contents = contents;
+    return record;
+}
+
+void MagicOMFAddPUBDEF16Identifier(struct RECORD* record, const char* pub_def_name, uint16 offset, uint8 type_index)
+{
+    struct PUBDEF_16* pubdef_16 = (struct PUBDEF_16*) record->contents;
+    struct PUBDEF_16_IDEN* new_iden = BuildPUBDEF16_IDEN(pub_def_name, offset, type_index);
+    if(pubdef_16->iden == NULL)
+    {
+        pubdef_16->iden = new_iden;
+    }
+    else
+    {
+        // We need to find where to put this new identifier
+        struct PUBDEF_16_IDEN* current = pubdef_16->iden;
+        while(current->next != NULL)
+        {
+            current = current->next;
+        }
+        
+        // Last pubdef identifier is found so set its next to the new identifier created
+        current->next = new_iden;
+    }
+        
+}
+
+void MagicOMFFinishPUBDEF16(struct RECORD* record)
+{
+    struct PUBDEF_16* pubdef_16 = (struct PUBDEF_16*) record->contents;
+    // base group index + base segment index + checksum = 3
+    uint16 record_size = 3; 
+    
+    if (pubdef_16->bs_index == 0)
+    {
+        // Base segment is zero so base frame is present, 2 bytes for base frame
+        record_size += 2;
+    }
+    
+    struct PUBDEF_16_IDEN* iden = pubdef_16->iden;
+    while(iden != NULL)
+    {
+        // String length field + string length + offset + type index = 4 + string length
+        record_size += 4 + iden->str_len;
+        iden = iden->next;
+    }
+    
+    // We have the record size
+    record->length = record_size;
+    MagicOMFAddRecord(record);
+    
 }
 
 void MagicOMFAddMODEND16(struct MagicOMFHandle* handle)
@@ -371,6 +518,9 @@ void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle)
         case LNAMES_ID:
             GeneratorWriteLNAMES(&handle->next, current);
             break;
+        case EXTDEF_ID:
+            GeneratorWriteEXTDEF(&handle->next, current);
+            break;
         case SEGDEF_16_ID:
             GeneratorWriteSEGDEF16(&handle->next, current);
             break;
@@ -382,6 +532,10 @@ void MagicOMFGenerateBuffer(struct MagicOMFHandle* handle)
             break;
         case MODEND_16_ID:
             GeneratorWriteMODEND16(&handle->next, current);
+            break;
+        case PUBDEF_16_ID:
+            GeneratorWritePUBDEF16(&handle->next, current);
+            break;
         default:
             error(INVALID_RECORD_TYPE, handle);
         }
@@ -530,6 +684,31 @@ int MagicOMFGetSEGDEFIndex(struct MagicOMFHandle* handle, const char* name)
                 return segname_index;
             }
             c_index++;
+        }
+        record = record->next;
+    }
+
+    return -1;
+}
+
+int MagicOMFGetEXTDEFIndex(struct MagicOMFHandle* handle, const char* name)
+{
+    struct RECORD* record = handle->root;
+    int c_index = 1;
+    while (record != NULL)
+    {
+        if (record->type == EXTDEF_ID)
+        {
+            struct EXTDEF* extdef_record = (struct EXTDEF*) (record->contents);
+            while (extdef_record != NULL)
+            {
+                if (strcmp(name, extdef_record->name_str) == 0)
+                {
+                    return c_index;
+                }
+                c_index++;
+                extdef_record = extdef_record->next;
+            }
         }
         record = record->next;
     }

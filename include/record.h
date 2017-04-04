@@ -114,6 +114,7 @@ struct PUBDEF_16
 {
     uint8 bg_index;
     uint8 bs_index;
+    struct SEGDEF_16* segdef_16_record;
     struct PUBDEF_16_IDEN* iden;
 
 };
@@ -146,12 +147,20 @@ struct FIXUPP_16_FIXUP_SUBRECORD
     // locat
     uint8 mode;
     uint16 location;
+    
+    // Offset relative to zero
+    uint16 abs_data_record_offset;
+    // Offset relative to current LEDATA
     uint16 data_record_offset;
 
     uint8 fix_data;
     uint8 frame_datum;
     uint8 target_datum;
     uint16 target_displacement;
+    uint8 target_type;
+    bool has_frame_datum;
+    bool has_target_datum;
+    bool has_target_displacement;
     
     // Extras, not related to the binary
     struct LEDATA_16* target_data;
@@ -170,7 +179,7 @@ struct MODEND_16
 struct EXTDEF
 {
     uint8 s_len;
-    const char* name_str;
+    char* name_str;
     uint8 type_index;
     struct EXTDEF* next;
 };

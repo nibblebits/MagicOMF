@@ -16,14 +16,14 @@
  */
 
 /* 
- * File:   structs.h
+ * File:   mdef.h
  * Author: Daniel McCarthy
  *
  * Created on 06 December 2016, 15:13
  */
 
-#ifndef STRUCTS_H
-#define STRUCTS_H
+#ifndef MDEF_H
+#define MDEF_H
 
 #ifdef __cplusplus
 extern "C"
@@ -31,7 +31,7 @@ extern "C"
 #endif
 
 #include "types.h"
-
+#include "record.h"
 enum
 {
     THEADR_ID = 0x80,
@@ -62,6 +62,13 @@ enum
 {
     FIXUPP_MODE_SELF_RELATIVE_FIXUP,
     FIXUPP_MODE_SEGMENT_RELATIVE_FIXUP
+};
+
+enum
+{
+    FIXUPP_TARGET_TYPE_SEGIDX,
+    FIXUPP_TARGET_TYPE_GRPIDX,
+    FIXUPP_TARGET_TYPE_EXTIDX,
 };
 
 enum
@@ -146,6 +153,8 @@ enum
     EXTDEF_TYPE_INDEX_NO_TYPDEF
 };
 
+typedef unsigned int FIXUP_MODE;
+
 struct MagicOMFHandle
 {
     char* buf;
@@ -159,6 +168,8 @@ struct MagicOMFHandle
     MAGIC_OMF_ERROR_CODE last_error_code;
     bool has_error;
     int record_type;
+    
+    struct LEDATA_16* last_ledata;
 };
 
 
@@ -166,5 +177,5 @@ struct MagicOMFHandle
 }
 #endif
 
-#endif /* STRUCTS_H */
+#endif /* MDEF_H */
 

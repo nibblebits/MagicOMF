@@ -99,6 +99,32 @@ void GeneratorWriteLNAMES(char** ptr, struct RECORD* record)
     WriteUnsignedByte(record->checksum);
 }
 
+void GeneratorWriteEXTDEF(char** ptr, struct RECORD* record)
+{
+    if (record->type != EXTDEF_ID)
+    {
+        error(INVALID_EXTDEF_PROVIDED, record->handle);
+    }
+
+    // Write the record header
+    GeneratorWriteRecordHeader(ptr, record);
+
+    struct EXTDEF* current = (struct EXTDEF*) record->contents;
+    while (current != NULL)
+    {
+        // Write the string length
+        WriteUnsignedByte(current->s_len);
+        // Write the string
+        WriteData(current->name_str, current->s_len);
+        // Write the type index
+        WriteUnsignedByte(current->type_index);
+        // Get the next EXTDEF
+        current = current->next;
+    }
+
+    WriteUnsignedByte(record->checksum);
+}
+
 void GeneratorWriteSEGDEF16(char** ptr, struct RECORD* record)
 {
     if (record->type != SEGDEF_16_ID)
@@ -175,37 +201,75 @@ void GeneratorWriteFIXUPP16(char** ptr, struct RECORD* record)
     GeneratorWriteRecordHeader(ptr, record);
 
     struct FIXUP_16_SUBRECORD_DESCRIPTOR* subrecord_desc = (struct FIXUP_16_SUBRECORD_DESCRIPTOR*) record->contents;
-    if (subrecord_desc->subrecord_type == FIXUPP_FIXUP_SUBRECORD)
+    while (subrecord_desc != NULL)
     {
-        // Only fixup subrecords are currently supported and it is limited support
-
-        struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) subrecord_desc->subrecord;
-        // We must construct the locat
-        uint16 locat = (0x01 << 15) | (subrecord->mode << 14) | (subrecord->location << 10) | (subrecord->data_record_offset);
-        // Write the locat
-        WriteUnsignedByte(locat >> 8);
-        WriteUnsignedByte(locat);
-
-        // Write the fix data ( spec states conditional but not how )
-        WriteUnsignedByte(subrecord->fix_data);
-
-        // Do we need to write a frame datum?
-        if (!(subrecord->fix_data & FIXUPP_FIXUP_SET_F))
+        if (subrecord_desc->subrecord_type == FIXUPP_FIXUP_SUBRECORD)
         {
-            // F is not set which means we have a frame datum
-            WriteUnsignedByte(subrecord->frame_datum);
-        }
+            // Only fixup subrecords are currently supported and it is limited support
+            struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) subrecord_desc->subrecord;
+            if (subrecord->data_record_offset > 1024)
+            {
+                error(FIXUPP_16_OFFSET_OUT_OF_BOUNDS, record->handle);
+                return;
+            }
+            // We must construct the locat
+            uint16 locat = (0x01 << 15) | (subrecord->mode << 14) | (subrecord->location << 10) | (subrecord->data_record_offset);
+            // Write the locat
+            WriteUnsignedByte(locat >> 8);
+            WriteUnsignedByte(locat);
 
-        // Do we have a target displacement?
-        if (!(subrecord->fix_data & FIXUPP_FIXUP_SET_P))
-        {
-            // P is not set which means we have a target displacement
-            WriteUnsignedWord(subrecord->target_displacement);
-        }
+            // Write the fix data ( spec states conditional but not how )
+            WriteUnsignedByte(subrecord->fix_data);
 
+            // Do we need to write a frame datum?
+            if (!(subrecord->fix_data & FIXUPP_FIXUP_SET_F))
+            {
+                // F is not set which means we have a frame datum
+                WriteUnsignedByte(subrecord->frame_datum);
+            }
+
+            // Do we have a target displacement?
+            if (!(subrecord->fix_data & FIXUPP_FIXUP_SET_P))
+            {
+                // P is not set which means we have a target displacement
+                WriteUnsignedWord(subrecord->target_displacement);
+            }
+
+        }
+        subrecord_desc = subrecord_desc->next_subrecord_descriptor;
+    }
+    // Finally write the checksum
+    WriteUnsignedByte(record->checksum);
+}
+
+void GeneratorWritePUBDEF16(char** ptr, struct RECORD* record)
+{
+    struct PUBDEF_16* contents = (struct PUBDEF_16*) record->contents;
+    // Write the record header
+    GeneratorWriteRecordHeader(ptr, record);
+    // Now comes record information
+    WriteUnsignedByte(contents->bg_index);
+    WriteUnsignedByte(contents->bs_index);
+    // Do we need to write a base frame?
+    if (contents->bs_index == 0)
+    {
+        // Yes lets just write a NULL word
+        WriteUnsignedWord(0);
     }
 
-    // Finally write the checksum
+
+    // Now comes pubdef 16 internals
+    struct PUBDEF_16_IDEN* iden = contents->iden;
+    while (iden != NULL)
+    {
+        WriteUnsignedByte(iden->str_len);
+        WriteData(iden->name_str, iden->str_len);
+        WriteUnsignedWord(iden->p_offset);
+        WriteUnsignedByte(iden->type_index);
+        iden = iden->next;
+    }
+
+    // Finally the checksum
     WriteUnsignedByte(record->checksum);
 }
 
@@ -219,10 +283,10 @@ void GeneratorWriteMODEND16(char** ptr, struct RECORD* record)
 
     // Write the record header
     GeneratorWriteRecordHeader(ptr, record);
-    
+
     // Write value of zero for module type
     WriteUnsignedByte(0);
-    
+
     // Write the checksum
     WriteUnsignedByte(record->checksum);
 }

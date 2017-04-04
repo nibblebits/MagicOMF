@@ -40,11 +40,12 @@ void GeneratorWriteRecordHeader(char** ptr, struct RECORD* record);
 void GeneratorWriteTHEADR(char** ptr, struct RECORD* record);
 void GeneratorWriteCOMENT(char** ptr, struct RECORD* record);
 void GeneratorWriteLNAMES(char** ptr, struct RECORD* record);
+void GeneratorWriteEXTDEF(char** ptr, struct RECORD* record);
 void GeneratorWriteSEGDEF16(char** ptr, struct RECORD* record);
 void GeneratorWriteLEDATA16(char** ptr, struct RECORD* record);
 void GeneratorWriteFIXUPP16(char** ptr, struct RECORD* record);
+void GeneratorWritePUBDEF16(char** ptr, struct RECORD* record);
 void GeneratorWriteMODEND16(char** ptr, struct RECORD* record);
-
 #ifdef __cplusplus
 }
 #endif

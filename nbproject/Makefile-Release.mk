@@ -37,7 +37,9 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/src/IO.o \
 	${OBJECTDIR}/src/MagicOMF.o \
+	${OBJECTDIR}/src/builder.o \
 	${OBJECTDIR}/src/error.o \
+	${OBJECTDIR}/src/generator.o \
 	${OBJECTDIR}/src/translate.o
 
 
@@ -59,31 +61,41 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMagicOMF.${CND_DLIB_EXT}
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../bin/MagicOMF.${CND_DLIB_EXT}
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMagicOMF.${CND_DLIB_EXT}: ${OBJECTFILES}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libMagicOMF.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
+../../bin/MagicOMF.${CND_DLIB_EXT}: ${OBJECTFILES}
+	${MKDIR} -p ../../bin
+	${LINK.c} -o ../../bin/MagicOMF.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
 
 ${OBJECTDIR}/src/IO.o: src/IO.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/IO.o src/IO.c
+	$(COMPILE.c) -O2 -DRELEASE -Iinclude  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/IO.o src/IO.c
 
 ${OBJECTDIR}/src/MagicOMF.o: src/MagicOMF.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MagicOMF.o src/MagicOMF.c
+	$(COMPILE.c) -O2 -DRELEASE -Iinclude  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MagicOMF.o src/MagicOMF.c
+
+${OBJECTDIR}/src/builder.o: src/builder.c
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -DRELEASE -Iinclude  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/builder.o src/builder.c
 
 ${OBJECTDIR}/src/error.o: src/error.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/error.o src/error.c
+	$(COMPILE.c) -O2 -DRELEASE -Iinclude  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/error.o src/error.c
+
+${OBJECTDIR}/src/generator.o: src/generator.c
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 -DRELEASE -Iinclude  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/generator.o src/generator.c
 
 ${OBJECTDIR}/src/translate.o: src/translate.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/translate.o src/translate.c
+	$(COMPILE.c) -O2 -DRELEASE -Iinclude  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/translate.o src/translate.c
 
 # Subprojects
 .build-subprojects:
