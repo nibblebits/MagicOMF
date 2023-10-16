@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include "IO.h"
 
+static char** ptr;
+
 void ReadAndIgnoreBytes(char** ptr, char* end)
 {
     while (*ptr != end)
